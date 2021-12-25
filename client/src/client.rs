@@ -30,7 +30,29 @@ pub fn get_balance_requirement(connection: &RpcClient) -> Result<u64> {
     let account_fee =
         connection.get_minimum_balance_for_rent_exemption(utils::get_greeting_data_size()?)?;
 
-    let (_, fee_calculator) = connection.get_recent_blockhash()?;
+    let latest_hash = match connection.get_latest_blockhash() {
+        Ok(hash) => hash,
+        Err(_) => {
+            return Err(Error::LatestBlockHashError(String::from(
+                "Can't fetch latest block hash",
+            )));
+        }
+    };
+    let fee_calculator = match connection.get_fee_calculator_for_blockhash(&latest_hash) {
+        Ok(calc) => match calc {
+            Some(calc) => calc,
+            None => {
+                return Err(Error::FeeCaluclatorError(String::from(
+                    "Can't fetch fee caluclator for blockhash",
+                )));
+            }
+        },
+        Err(_) => {
+            return Err(Error::FeeCaluclatorError(String::from(
+                "Can't fetch fee caluclator for blockhash",
+            )));
+        }
+    };
     let transaction_fee = fee_calculator.lamports_per_signature * 100;
 
     Ok(transaction_fee + account_fee)
@@ -129,8 +151,15 @@ pub fn create_greeting_account(
             &program.pubkey(),
         );
         let message = Message::new(&[instruction], Some(&player.pubkey()));
-        let transaction =
-            Transaction::new(&[player], message, connection.get_recent_blockhash()?.0);
+        let latest_hash = match connection.get_latest_blockhash() {
+            Ok(hash) => hash,
+            Err(_) => {
+                return Err(Error::LatestBlockHashError(String::from(
+                    "Can't fetch latest block hash",
+                )));
+            }
+        };
+        let transaction = Transaction::new(&[player], message, latest_hash);
 
         connection.send_and_confirm_transaction(&transaction)?;
     }
@@ -157,7 +186,15 @@ pub fn say_hello(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
         vec![AccountMeta::new(greeting_pubkey, false)],
     );
     let message = Message::new(&[instruction], Some(&player.pubkey()));
-    let transaction = Transaction::new(&[player], message, connection.get_recent_blockhash()?.0);
+    let latest_hash = match connection.get_latest_blockhash() {
+        Ok(hash) => hash,
+        Err(_) => {
+            return Err(Error::LatestBlockHashError(String::from(
+                "Can't fetch latest block hash",
+            )));
+        }
+    };
+    let transaction = Transaction::new(&[player], message, latest_hash);
 
     connection.send_and_confirm_transaction(&transaction)?;
 

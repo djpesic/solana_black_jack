@@ -1,4 +1,4 @@
-use zeke_contract as zc;
+use black_jack_client as bj_client;
 
 fn main() {
     let args = std::env::args().collect::<Vec<_>>();
@@ -11,20 +11,20 @@ fn main() {
     }
     let keypair_path = &args[1];
 
-    let connection = zc::client::establish_connection().unwrap();
+    let connection = bj_client::client::establish_connection().unwrap();
     println!(
         "Connected to remote solana node running version ({}).",
         connection.get_version().unwrap()
     );
 
-    let balance_requirement = zc::client::get_balance_requirement(&connection).unwrap();
+    let balance_requirement = bj_client::client::get_balance_requirement(&connection).unwrap();
     println!(
         "({}) lamports are required for this transaction.",
         balance_requirement
     );
 
-    let player = zc::utils::get_player().unwrap();
-    let player_balance = zc::client::get_player_balance(&player, &connection).unwrap();
+    let player = bj_client::utils::get_player().unwrap();
+    let player_balance = bj_client::client::get_player_balance(&player, &connection).unwrap();
     println!("({}) lamports are owned by player.", player_balance);
 
     if player_balance < balance_requirement {
@@ -33,16 +33,16 @@ fn main() {
             "Player does not own sufficent lamports. Airdropping ({}) lamports.",
             request
         );
-        zc::client::request_airdrop(&player, &connection, request).unwrap();
+        bj_client::client::request_airdrop(&player, &connection, request).unwrap();
     }
 
-    let program = zc::client::get_program(keypair_path, &connection).unwrap();
+    let program = bj_client::client::get_program(keypair_path, &connection).unwrap();
 
-    zc::client::create_greeting_account(&player, &program, &connection).unwrap();
+    bj_client::client::create_greeting_account(&player, &program, &connection).unwrap();
 
-    zc::client::say_hello(&player, &program, &connection).unwrap();
+    bj_client::client::say_hello(&player, &program, &connection).unwrap();
     println!(
         "({}) greetings have been sent.",
-        zc::client::count_greetings(&player, &program, &connection).unwrap()
+        bj_client::client::count_greetings(&player, &program, &connection).unwrap()
     )
 }
