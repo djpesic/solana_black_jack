@@ -3,6 +3,8 @@
 function build_bpf() {
 	cd client
 	cargo build
+	cd ../dealer
+	cargo build
 	cd ..
     cargo build-bpf --manifest-path=program/Cargo.toml --bpf-out-dir=dist/program
 }

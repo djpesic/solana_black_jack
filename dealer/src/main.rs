@@ -23,7 +23,7 @@ fn main() {
         balance_requirement
     );
 
-    let player = bj_client::utils::get_player().unwrap();
+    let player = bj_client::utils::get_local_wallet().unwrap();
     let player_balance = bj_client::client::get_player_balance(&player, &connection).unwrap();
     println!("({}) lamports are owned by player.", player_balance);
 

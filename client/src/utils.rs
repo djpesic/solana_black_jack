@@ -4,6 +4,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::{read_keypair_file, Keypair};
 use yaml_rust::YamlLoader;
 
+/// todo: adapt to black jack account.
 /// The schema for greeting storage in greeting accounts. This is what
 /// is serialized into the account and updated when hellos are sent.
 #[derive(BorshSerialize, BorshDeserialize)]
@@ -21,7 +22,7 @@ pub fn get_config() -> Result<yaml_rust::Yaml> {
         None => {
             return Err(Error::ConfigReadError(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
-                "failed to locate homedir and thus can not locoate solana config",
+                "failed to locate homedir and thus can not locate solana config",
             )));
         }
     };
@@ -48,9 +49,9 @@ pub fn get_rpc_url() -> Result<String> {
     }
 }
 
-/// Gets the "player" or local solana wallet that has been configured
+/// Gets the "client wallet" or local solana wallet that has been configured
 /// on the machine.
-pub fn get_player() -> Result<Keypair> {
+pub fn get_local_wallet() -> Result<Keypair> {
     let config = get_config()?;
     let path = match config["keypair_path"].as_str() {
         Some(s) => s,
@@ -65,23 +66,23 @@ pub fn get_player() -> Result<Keypair> {
     })
 }
 
-/// Gets the seed used to generate greeting accounts. If you'd like to
-/// force this program to generate a new greeting account and thus
-/// restart the counter you can change this value.
-pub fn get_greeting_seed() -> &'static str {
-    "hello"
+/// Gets the seed used to generate accounts. If you'd like to
+/// force this program to generate a new  account you can change this value.
+pub fn get_account_seed() -> &'static str {
+    "black_jack"
 }
 
-/// Derives and returns the greeting account public key for a given
-/// PLAYER, PROGRAM combination.
-pub fn get_greeting_public_key(player: &Pubkey, program: &Pubkey) -> Result<Pubkey> {
+/// Derives and returns the account public key for a given
+/// CLIENT, PROGRAM combination.
+pub fn get_account_public_key(player: &Pubkey, program: &Pubkey) -> Result<Pubkey> {
     Ok(Pubkey::create_with_seed(
         player,
-        get_greeting_seed(),
+        get_account_seed(),
         program,
     )?)
 }
 
+/// todo: adapt to black jack account.
 /// Determines and reports the size of greeting data.
 pub fn get_greeting_data_size() -> Result<usize> {
     let encoded = GreetingSchema { counter: 0 }
@@ -90,6 +91,7 @@ pub fn get_greeting_data_size() -> Result<usize> {
     Ok(encoded.len())
 }
 
+/// todo: adapt to black jack account.
 /// Deserializes a greeting account and reports the value of its
 /// greeting counter.
 pub fn get_greeting_count(data: &[u8]) -> Result<u32> {
