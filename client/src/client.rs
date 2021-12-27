@@ -1,5 +1,10 @@
+extern crate rand;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+
 use crate::utils;
 use crate::{Error, Result};
+use borsh::BorshSerialize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::instruction::{AccountMeta, Instruction};
@@ -28,7 +33,7 @@ pub fn establish_connection() -> Result<RpcClient> {
 /// [here](https://docs.solana.com/implemented-proposals/rent#two-tiered-rent-regime)
 pub fn get_balance_requirement(connection: &RpcClient) -> Result<u64> {
     let account_fee =
-        connection.get_minimum_balance_for_rent_exemption(utils::get_greeting_data_size()?)?;
+        connection.get_minimum_balance_for_rent_exemption(utils::get_blackjack_data_size()?)?;
 
     let latest_hash = match connection.get_latest_blockhash() {
         Ok(hash) => hash,
@@ -103,21 +108,13 @@ pub fn get_program(keypair_path: &str, connection: &RpcClient) -> Result<Keypair
     Ok(program_keypair)
 }
 
-/// todo: adapt to black jack account.
 ///
-/// On Solana accounts are ways to store data. In order to use our
-/// greeting counter smart contract we need some way to store the
-/// number of times we have said hello to the contract. To do this we
-/// create a greeting account which we subsequentally transfer
-/// ownership of to the program. This allows the program to write to
-/// that account as it deems fit.
-///
-/// The greeting account has a [derived
+/// The  account has a [derived
 /// address](https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses)
 /// which allows it to own and manage the account. Additionally the
 /// address being derived means that we can regenerate it when we'd
-/// like to find the greeting account again later.
-pub fn create_greeting_account(
+/// like to find the  account again later.
+pub fn create_blackjack_account(
     player: &Keypair,
     program: &Keypair,
     connection: &RpcClient,
@@ -125,9 +122,9 @@ pub fn create_greeting_account(
     let account_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
 
     if let Err(_) = connection.get_account(&account_pubkey) {
-        println!("creating greeting account");
+        println!("creating blackjack account");
         let lamport_requirement =
-            connection.get_minimum_balance_for_rent_exemption(utils::get_greeting_data_size()?)?;
+            connection.get_minimum_balance_for_rent_exemption(utils::get_blackjack_data_size()?)?;
 
         // This instruction creates an account with the key
         // "account_pubkey". The created account is owned by the
@@ -149,7 +146,7 @@ pub fn create_greeting_account(
             &player.pubkey(),
             utils::get_account_seed(),
             lamport_requirement,
-            utils::get_greeting_data_size()? as u64,
+            utils::get_blackjack_data_size()? as u64,
             &program.pubkey(),
         );
         let message = Message::new(&[instruction], Some(&player.pubkey()));
@@ -169,23 +166,26 @@ pub fn create_greeting_account(
     Ok(())
 }
 
-/// Sends an instruction from PLAYER to PROGRAM via CONNECTION. The
-/// instruction contains no data but does contain the address of our
-/// previously generated greeting account. The program will use that
-/// passed in address to update its greeting counter after verifying
-/// that it owns the account that we have passed in.
-pub fn say_hello(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
-    let greeting_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
+/// Sends shuffled deck of cards as an instruction from PLAYER to PROGRAM via CONNECTION.
+pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
+    let deck = generate_deck();
+    //serialize deck
+    let encoded = utils::BlackJackAccountSchema::new(deck)
+        .try_to_vec()
+        .map_err(|e| Error::SerializationError(e))?;
+
+    let black_jack_account_pub_key =
+        utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
 
     // Submit an instruction to the chain which tells the program to
     // run. We pass the account that we want the results to be stored
-    // in as one of the accounts arguents which the program will
-    // handle.
+    // in as one of the accounts arguments which the program will
+    // handle. Instruction also contains serialized deck of cards, and solana program public key.
 
     let instruction = Instruction::new_with_bytes(
         program.pubkey(),
-        &[],
-        vec![AccountMeta::new(greeting_pubkey, false)],
+        &encoded,
+        vec![AccountMeta::new(black_jack_account_pub_key, false)],
     );
     let message = Message::new(&[instruction], Some(&player.pubkey()));
     let latest_hash = match connection.get_latest_blockhash() {
@@ -202,12 +202,21 @@ pub fn say_hello(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
 
     Ok(())
 }
+/// Generate one classic deck of 52 cards and shuffle it.
 
-/// Pulls down the greeting account data and the value of its counter
-/// which ought to track how many times the `say_hello` method has
-/// been run.
-pub fn count_greetings(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<u32> {
-    let greeting_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
-    let greeting_account = connection.get_account(&greeting_pubkey)?;
-    Ok(utils::get_greeting_count(&greeting_account.data)?)
+pub fn generate_deck() -> Vec<u8> {
+    let mut range: Vec<u8> = (1..11).collect();
+    let mut result: Vec<u8> = Vec::new();
+    //four colours (spade, heart, diamond, club)
+    for _i in 0..4 {
+        result.append(&mut range);
+        result.push(12);
+        result.push(13);
+        result.push(14);
+    }
+
+    let mut rng = thread_rng();
+    result.shuffle(&mut rng);
+    println!("Generated deck: {:?}", result);
+    result
 }

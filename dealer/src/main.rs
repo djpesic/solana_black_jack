@@ -23,26 +23,23 @@ fn main() {
         balance_requirement
     );
 
-    let player = bj_client::utils::get_local_wallet().unwrap();
-    let player_balance = bj_client::client::get_player_balance(&player, &connection).unwrap();
-    println!("({}) lamports are owned by player.", player_balance);
+    let dealer = bj_client::utils::get_local_wallet().unwrap();
+    let dealer_balance = bj_client::client::get_player_balance(&dealer, &connection).unwrap();
+    println!("({}) lamports are owned by dealer.", dealer_balance);
 
-    if player_balance < balance_requirement {
-        let request = balance_requirement - player_balance;
+    if dealer_balance < balance_requirement {
+        let request = balance_requirement - dealer_balance;
         println!(
-            "Player does not own sufficent lamports. Airdropping ({}) lamports.",
+            "dealer does not own sufficent lamports. Airdropping ({}) lamports.",
             request
         );
-        bj_client::client::request_airdrop(&player, &connection, request).unwrap();
+        bj_client::client::request_airdrop(&dealer, &connection, request).unwrap();
     }
 
     let program = bj_client::client::get_program(keypair_path, &connection).unwrap();
 
-    bj_client::client::create_greeting_account(&player, &program, &connection).unwrap();
+    bj_client::client::create_blackjack_account(&dealer, &program, &connection).unwrap();
 
-    bj_client::client::say_hello(&player, &program, &connection).unwrap();
-    println!(
-        "({}) greetings have been sent.",
-        bj_client::client::count_greetings(&player, &program, &connection).unwrap()
-    )
+    bj_client::client::send_deck(&dealer, &program, &connection).unwrap();
+    println!("Dealer sent deck of cards")
 }

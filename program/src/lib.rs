@@ -1,4 +1,5 @@
-use borsh::{BorshDeserialize, BorshSerialize};
+// use black_jack_client as bj_client;
+// use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint,
@@ -6,26 +7,19 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-/// The type of state managed by this program. The type defined here
-/// much match the `GreetingAccount` type defined by the client.
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
-pub struct GreetingAccount {
-    /// The number of greetings that have been sent to this account.
-    pub counter: u32,
-}
+// The type of state managed by this program. The type defined here
+// much match the `BlackJackAccount` type defined by the client.
+// The schema for storage in blackjack accounts. This is what
+// is serialized into the account and later updated.
 
 // Declare the programs entrypoint. The entrypoint is the function
 // that will get run when the program is executed.
 #[cfg(not(feature = "exclude_entrypoint"))]
 entrypoint!(process_instruction);
 
-/// Logic that runs when the program is executed. This program expects
-/// a single account that is owned by the program as an argument and
-/// no instructions.
+/// Logic that runs when the program is executed.
 ///
-/// The account passed in ought to contain a `GreetingAccount`. This
-/// program will increment the `counter` value in the
-/// `GreetingAccount` when executed.
+/// The account passed in ought to contain a `BlackJackAccount`.
 pub fn process_instruction(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
@@ -42,10 +36,9 @@ pub fn process_instruction(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    // Deserialize the greeting information from the account, modify
-    // it, and then write it back.
-    let mut greeting = GreetingAccount::try_from_slice(&account.data.borrow())?;
-    greeting.counter += 1;
-    greeting.serialize(&mut &mut account.data.borrow_mut()[..])?;
+    // Deserialize data.
+    // let bj_account = BlackJackAccount::try_from_slice(&account.data.borrow())?;
+
+    // bj_account.serialize(&mut &mut account.data.borrow_mut()[..])?;
     Ok(())
 }
