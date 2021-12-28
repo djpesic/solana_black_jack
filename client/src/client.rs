@@ -1,10 +1,8 @@
 extern crate rand;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use utils;
 
-use crate::utils;
-use crate::{Error, Result};
-use borsh::BorshSerialize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::instruction::{AccountMeta, Instruction};
@@ -12,6 +10,7 @@ use solana_sdk::message::Message;
 use solana_sdk::signature::Signer;
 use solana_sdk::signer::keypair::{read_keypair_file, Keypair};
 use solana_sdk::transaction::Transaction;
+use utils::{Error, Result};
 
 /// Establishes a RPC connection with the solana cluster configured by
 /// `solana config set --url <URL>`. Information about what cluster
@@ -170,9 +169,7 @@ pub fn create_blackjack_account(
 pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
     let deck = generate_deck();
     //serialize deck
-    let encoded = utils::BlackJackAccountSchema::new(deck)
-        .try_to_vec()
-        .map_err(|e| Error::SerializationError(e))?;
+    // let encoded = ... need to implement instructions for sending to smart contract
 
     let black_jack_account_pub_key =
         utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
@@ -184,7 +181,8 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
 
     let instruction = Instruction::new_with_bytes(
         program.pubkey(),
-        &encoded,
+        // &encoded,
+        &[],
         vec![AccountMeta::new(black_jack_account_pub_key, false)],
     );
     let message = Message::new(&[instruction], Some(&player.pubkey()));

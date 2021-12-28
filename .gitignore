@@ -4,3 +4,4 @@
 program/Cargo.lock
 dealer/Cargo.lock
 client/Cargo.lock
+utils/Cargo.lock

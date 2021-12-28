@@ -1,8 +1,34 @@
-use crate::{Error, Result};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::{read_keypair_file, Keypair};
+use thiserror::Error;
 use yaml_rust::YamlLoader;
+
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("failed to read solana config file: ({0})")]
+    ConfigReadError(std::io::Error),
+    #[error("failed to parse solana config file: ({0})")]
+    ConfigParseError(#[from] yaml_rust::ScanError),
+    #[error("invalid config: ({0})")]
+    InvalidConfig(String),
+
+    #[error("serialization error: ({0})")]
+    SerializationError(std::io::Error),
+
+    #[error("solana client error: ({0})")]
+    ClientError(#[from] solana_client::client_error::ClientError),
+    #[error("error in public key derivation: ({0})")]
+    KeyDerivationError(#[from] solana_sdk::pubkey::PubkeyError),
+
+    #[error("error in fetching latest block hash: ({0})")]
+    LatestBlockHashError(String),
+
+    #[error("error in fetching fee calculator: ({0})")]
+    FeeCaluclatorError(String),
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// The schema for storage in blackjac accounts. This is what
 /// is serialized into the account and later updated.
