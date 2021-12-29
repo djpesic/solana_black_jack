@@ -31,8 +31,6 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub mod instructions;
-
 /// The schema for storage in blackjac accounts. This is what
 /// is serialized into the account and later updated.
 #[derive(BorshSerialize, BorshDeserialize)]

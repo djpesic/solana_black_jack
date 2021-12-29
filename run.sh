@@ -7,6 +7,8 @@ function build_bpf() {
 	cargo build
 	cd ../utils
 	cargo build
+	cd ../instructions
+	cargo build
 	cd ..
     cargo build-bpf --manifest-path=program/Cargo.toml --bpf-out-dir=dist/program
 }

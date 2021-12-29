@@ -1,7 +1,4 @@
 /dist
 /test-ledger
 /**/target
-program/Cargo.lock
-dealer/Cargo.lock
-client/Cargo.lock
-utils/Cargo.lock
+/**/Cargo.lock

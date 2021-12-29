@@ -36,5 +36,9 @@ pub fn process_instruction(
         return Err(ProgramError::IncorrectProgramId);
     }
 
+    match instruction_data[0] {
+        instructions::SEND_DECK => {}
+        _ => (),
+    }
     Ok(())
 }

@@ -11,4 +11,5 @@ solana-client = "1.9.2"
 yaml-rust = "0.4.5"
 rand = "0.8.4"
 utils = { path= "../utils"}
+instructions = {path="../instructions"}
 borsh = "0.9.1"
