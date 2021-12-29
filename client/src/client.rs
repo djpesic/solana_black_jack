@@ -172,11 +172,14 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
     //serialize deck
     let mut encoded_deck: Vec<u8> = Vec::new();
     encoded_deck.push(instructions::SEND_DECK);
+    println!("Serialize deck");
     if let Err(_) = (instructions::SendDeck { deck: deck }.serialize(&mut encoded_deck)) {
         return Err(utils::Error::Error(String::from(
             "Deck serialization error",
         )));
     }
+    println!("Serialized len: {}", encoded_deck.len());
+    println!("Serialized: {:?}", encoded_deck);
 
     let black_jack_account_pub_key =
         utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
@@ -185,7 +188,7 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
     // run. We pass the account that we want the results to be stored
     // in as one of the accounts arguments which the program will
     // handle. Instruction also contains serialized deck of cards, and solana program public key.
-
+    println!("Create instruction");
     let instruction = Instruction::new_with_bytes(
         program.pubkey(),
         &encoded_deck,
@@ -201,7 +204,7 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
         }
     };
     let transaction = Transaction::new(&[player], message, latest_hash);
-
+    println!("Send transaction");
     connection.send_and_confirm_transaction(&transaction)?;
 
     Ok(())
@@ -209,14 +212,14 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
 /// Generate one classic deck of 52 cards and shuffle it.
 
 pub fn generate_deck() -> Vec<u8> {
-    let mut range: Vec<u8> = (1..11).collect();
     let mut result: Vec<u8> = Vec::new();
     //four colours (spade, heart, diamond, club)
-    for _i in 0..4 {
-        result.append(&mut range);
-        result.push(12);
-        result.push(13);
-        result.push(14);
+    for _j in 0..4 {
+        for i in 1..15 {
+            if i != 11 {
+                result.push(i);
+            }
+        }
     }
 
     let mut rng = thread_rng();

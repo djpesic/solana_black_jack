@@ -37,8 +37,10 @@ fn main() {
     }
 
     let program = bj_client::client::get_program(keypair_path, &connection).unwrap();
+    println!("Create blackjack account");
 
     bj_client::client::create_blackjack_account(&dealer, &program, &connection).unwrap();
+    println!("Send deck of cards");
 
     bj_client::client::send_deck(&dealer, &program, &connection).unwrap();
     println!("Dealer sent deck of cards")

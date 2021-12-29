@@ -22,7 +22,7 @@ case $1 in
 	solana program deploy dist/program/black_jack.so
 	;;
     "client")
-	(cd client/; cargo run ../dist/program/black_jack-keypair.json)
+	(cd dealer/; cargo run ../dist/program/black_jack-keypair.json)
 	;;
     "clean")
 	(cd program/; cargo clean)

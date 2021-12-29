@@ -1,8 +1,9 @@
 // use black_jack_client as bj_client;
 // use borsh::{BorshDeserialize, BorshSerialize};
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
-    entrypoint,
+    entrypoint, msg,
     program_error::ProgramError,
     pubkey::Pubkey,
 };
@@ -25,6 +26,8 @@ pub fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> entrypoint::ProgramResult {
+    msg!("instruction data: {:?}", instruction_data);
+
     // Get the account that stores greeting count information.
     let accounts_iter = &mut accounts.iter();
     let account = next_account_info(accounts_iter)?;
@@ -35,9 +38,13 @@ pub fn process_instruction(
     if account.owner != program_id {
         return Err(ProgramError::IncorrectProgramId);
     }
-
+    msg!("account data len: {}", account.data_len());
+    msg!("account data: {:?}", &account.data.borrow());
+    // let mut bj_account = instructions::BlackJackAccount::try_from_slice(&account.data.borrow())?;
     match instruction_data[0] {
-        instructions::SEND_DECK => {}
+        instructions::SEND_DECK => {
+            instructions::unpack_send_deck(&instruction_data[1..], account);
+        }
         _ => (),
     }
     Ok(())

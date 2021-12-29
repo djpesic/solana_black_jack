@@ -35,17 +35,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// is serialized into the account and later updated.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct BlackJackAccountSchema {
-    cards: Vec<u8>,
-}
-
-impl BlackJackAccountSchema {
-    pub fn new(cards: Vec<u8>) -> BlackJackAccountSchema {
-        BlackJackAccountSchema { cards: cards }
-    }
-
-    pub fn get_cards(&self) -> &Vec<u8> {
-        &self.cards
-    }
+    pub cards: Vec<u8>,
+    pub sum: u8,
 }
 
 /// Parses and returns the Solana yaml config on the system.
@@ -120,12 +111,15 @@ pub fn get_account_public_key(player: &Pubkey, program: &Pubkey) -> Result<Pubke
 
 /// Determines and reports the size of blackjack account data.
 pub fn get_blackjack_data_size() -> Result<usize> {
+    println!("Calculating blackjack account size");
     let mut vec = Vec::new();
-    for _i in 1..52 {
-        vec.push(0);
+    for i in 0..52 {
+        vec.push(i);
     }
-    let encoded = BlackJackAccountSchema { cards: vec }
+    let encoded = BlackJackAccountSchema { cards: vec, sum: 0 }
         .try_to_vec()
         .map_err(|e| Error::SerializationError(e))?;
+    println!("Encoded: {:?}", encoded);
+    println!("Size: {}", encoded.len());
     Ok(encoded.len())
 }
