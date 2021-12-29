@@ -15,8 +15,7 @@ pub enum Error {
 
     #[error("serialization error: ({0})")]
     SerializationError(std::io::Error),
-
-    #[error("solana client error: ({0})")]
+    #[error("serialization error: ({0})")]
     ClientError(#[from] solana_client::client_error::ClientError),
     #[error("error in public key derivation: ({0})")]
     KeyDerivationError(#[from] solana_sdk::pubkey::PubkeyError),
@@ -26,9 +25,13 @@ pub enum Error {
 
     #[error("error in fetching fee calculator: ({0})")]
     FeeCaluclatorError(String),
+    #[error("Custom error: ({0})")]
+    Error(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub mod instructions;
 
 /// The schema for storage in blackjac accounts. This is what
 /// is serialized into the account and later updated.

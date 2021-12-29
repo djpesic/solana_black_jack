@@ -36,9 +36,5 @@ pub fn process_instruction(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    // Deserialize data.
-    // let bj_account = BlackJackAccount::try_from_slice(&account.data.borrow())?;
-
-    // bj_account.serialize(&mut &mut account.data.borrow_mut()[..])?;
     Ok(())
 }

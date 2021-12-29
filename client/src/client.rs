@@ -3,6 +3,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 use utils;
 
+use borsh::ser::BorshSerialize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::instruction::{AccountMeta, Instruction};
@@ -169,7 +170,13 @@ pub fn create_blackjack_account(
 pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
     let deck = generate_deck();
     //serialize deck
-    // let encoded = ... need to implement instructions for sending to smart contract
+    let mut encoded_deck: Vec<u8> = Vec::new();
+    encoded_deck.push(instructions::SEND_DECK);
+    if let Err(_) = (instructions::SendDeck { deck: deck }.serialize(&mut encoded_deck)) {
+        return Err(utils::Error::Error(String::from(
+            "Deck serialization error",
+        )));
+    }
 
     let black_jack_account_pub_key =
         utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
@@ -181,8 +188,7 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
 
     let instruction = Instruction::new_with_bytes(
         program.pubkey(),
-        // &encoded,
-        &[],
+        &encoded_deck,
         vec![AccountMeta::new(black_jack_account_pub_key, false)],
     );
     let message = Message::new(&[instruction], Some(&player.pubkey()));
