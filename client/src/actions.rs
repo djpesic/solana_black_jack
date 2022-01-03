@@ -22,9 +22,12 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
             "Deck serialization error",
         )));
     }
-    println!("Serialized len: {}", encoded_deck.len());
-    println!("Serialized: {:?}", encoded_deck);
+    println!("Serialized deck len: {}", encoded_deck.len());
+    println!("Serialized deck: {:?}", encoded_deck);
+    send(player, program, connection, &encoded_deck)
+}
 
+fn send(player: &Keypair, program: &Keypair, connection: &RpcClient, data: &Vec<u8>) -> Result<()> {
     let black_jack_account_pub_key =
         utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
 
@@ -32,10 +35,10 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
     // run. We pass the account that we want the results to be stored
     // in as one of the accounts arguments which the program will
     // handle. Instruction also contains serialized deck of cards, and solana program public key.
-    println!("Create instruction");
+    println!("Create send deck instruction");
     let instruction = Instruction::new_with_bytes(
         program.pubkey(),
-        &encoded_deck,
+        &data,
         vec![AccountMeta::new(black_jack_account_pub_key, false)],
     );
     let message = Message::new(&[instruction], Some(&player.pubkey()));
@@ -50,9 +53,9 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
     let transaction = Transaction::new(&[player], message, latest_hash);
     println!("Send transaction");
     connection.send_and_confirm_transaction(&transaction)?;
-
     Ok(())
 }
+
 /// Generate one classic deck of 52 cards and shuffle it.
 
 fn generate_deck() -> Vec<u8> {
@@ -70,4 +73,11 @@ fn generate_deck() -> Vec<u8> {
     result.shuffle(&mut rng);
     println!("Generated deck: {:?}", result);
     result
+}
+/// Init deal operation. Dealing will be done inside the on-chain program.
+pub fn deal(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
+    let mut data: Vec<u8> = Vec::new();
+    data.push(instructions::DEAL);
+    println!("Init dealing.");
+    send(player, program, connection, &data)
 }

@@ -1,5 +1,5 @@
 # Decentralized black jack game
-This is decentralized implementation of black jack game, implemented on Solana, in Rust. Currently, game supports one deck of cards. Code is based on https://github.com/ezekiiel/simple-solana-program.git. There are two main parts:
+This is decentralized implementation of black jack game, implemented on Solana, in Rust. Currently, game supports one deck of cards, one player and a dealer. Code is based on https://github.com/ezekiiel/simple-solana-program.git. There are two main parts:
 
  1. Clients
  2. Solana program.

@@ -43,5 +43,8 @@ fn main() {
     println!("Send deck of cards");
 
     bj_client::actions::send_deck(&dealer, &program, &connection).unwrap();
-    println!("Dealer sent deck of cards")
+    println!("Dealer sent deck of cards");
+
+    bj_client::actions::deal(&dealer, &program, &connection).unwrap();
+    println!("Cards are dealt");
 }

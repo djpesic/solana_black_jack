@@ -8,11 +8,6 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
-// The type of state managed by this program. The type defined here
-// much match the `BlackJackAccount` type defined by the client.
-// The schema for storage in blackjack accounts. This is what
-// is serialized into the account and later updated.
-
 // Declare the programs entrypoint. The entrypoint is the function
 // that will get run when the program is executed.
 #[cfg(not(feature = "exclude_entrypoint"))]
@@ -40,10 +35,13 @@ pub fn process_instruction(
     }
     msg!("account data len: {}", account.data_len());
     msg!("account data: {:?}", &account.data.borrow());
-    // let mut bj_account = instructions::BlackJackAccount::try_from_slice(&account.data.borrow())?;
+
     match instruction_data[0] {
         instructions::SEND_DECK => {
             instructions::unpack_send_deck(&instruction_data[1..], account);
+        }
+        instructions::DEAL => {
+            instructions::unpack_deal(account);
         }
         _ => (),
     }
