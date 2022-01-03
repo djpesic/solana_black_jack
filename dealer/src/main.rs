@@ -42,6 +42,6 @@ fn main() {
     bj_client::client::create_blackjack_account(&dealer, &program, &connection).unwrap();
     println!("Send deck of cards");
 
-    bj_client::client::send_deck(&dealer, &program, &connection).unwrap();
+    bj_client::actions::send_deck(&dealer, &program, &connection).unwrap();
     println!("Dealer sent deck of cards")
 }
