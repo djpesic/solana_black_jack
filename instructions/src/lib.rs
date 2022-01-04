@@ -10,13 +10,13 @@ pub struct SendDeck {
 // The type of state managed by this program. The type defined here
 // must match the `BlackJackAccount` type defined by the client.
 
-#[derive(BorshSerialize, BorshDeserialize)]
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct BlackJackAccount {
-    pub cards: Vec<u8>,
     //initial dealer cards, at the game's beginning.
     pub dealer_start1: u8, //this card is not visible to players.
     pub dealer_start2: u8, // this card is visible to players.
     pub player_hand: u8,   // contatins sum of the player's cards.
+    pub cards: Vec<u8>,
 }
 //instruction codes. Used in program, for switching.
 pub const SEND_DECK: u8 = 0;
@@ -94,9 +94,13 @@ pub fn unpack_deal(account_info: &AccountInfo) {
             return;
         }
     };
+    bj_account.cards.push(0);
+    bj_account.cards.push(0);
+    bj_account.cards.push(0);
+    bj_account.cards.push(0);
     match bj_account.serialize(&mut &mut account_info.data.borrow_mut()[..]) {
         Ok(_) => {
-            msg!("Deal finished");
+            msg!("Deal finished, account: {:?}", bj_account);
             return;
         }
         Err(_) => {

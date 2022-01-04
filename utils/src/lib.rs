@@ -1,8 +1,10 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::{read_keypair_file, Keypair};
+use std::path::PathBuf;
 use thiserror::Error;
 use yaml_rust::YamlLoader;
+extern crate project_root;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -12,6 +14,9 @@ pub enum Error {
     ConfigParseError(#[from] yaml_rust::ScanError),
     #[error("invalid config: ({0})")]
     InvalidConfig(String),
+
+    #[error("Invalid keypair file: ({0})")]
+    InvalidKeypairFile(String),
 
     #[error("serialization error: ({0})")]
     SerializationError(std::io::Error),
@@ -35,11 +40,11 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// is serialized into the account and later updated.
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct BlackJackAccountSchema {
-    pub cards: Vec<u8>,
     //initial dealer cards, at the game's beginning.
     pub dealer_start1: u8, //this card is not visible to players.
     pub dealer_start2: u8, // this card is visible to players.
     pub player_hand: u8,   // contatins sum of the player's cards.
+    pub cards: Vec<u8>,
 }
 
 /// Parses and returns the Solana yaml config on the system.
@@ -96,6 +101,25 @@ pub fn get_local_wallet() -> Result<Keypair> {
     })
 }
 
+/// Gets the "player wallet"
+pub fn get_player_wallet() -> Result<Keypair> {
+    let mut proj_root = match project_root::get_project_root() {
+        Ok(p) => p,
+        Err(_) => {
+            return Err(Error::InvalidKeypairFile(
+                "Invalid project root location".to_string(),
+            ))
+        }
+    };
+    let player_path = PathBuf::from("player_wallet/keypair.json");
+    let player_path = player_path.as_path();
+    proj_root.push(player_path);
+    read_keypair_file(proj_root).map_err(|e| {
+        println!("{:?}", e);
+        Error::InvalidKeypairFile("Invalid player keyfile location".to_string())
+    })
+}
+
 /// Gets the seed used to generate accounts. If you'd like to
 /// force this program to generate a new  account you can change this value.
 pub fn get_account_seed() -> &'static str {
@@ -127,7 +151,6 @@ pub fn get_blackjack_data_size() -> Result<usize> {
     }
     .try_to_vec()
     .map_err(|e| Error::SerializationError(e))?;
-    println!("Encoded: {:?}", encoded);
     println!("Size: {}", encoded.len());
     Ok(encoded.len())
 }

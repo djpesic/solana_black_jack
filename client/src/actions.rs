@@ -1,5 +1,5 @@
 extern crate rand;
-use borsh::ser::BorshSerialize;
+use borsh::{BorshDeserialize, BorshSerialize};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use solana_client::rpc_client::RpcClient;
@@ -80,4 +80,17 @@ pub fn deal(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Resu
     data.push(instructions::DEAL);
     println!("Init dealing.");
     send(player, program, connection, &data)
+}
+/// Get dealer's faced-up card.
+pub fn get_dealer_faced_up(
+    player: &Keypair,
+    program: &Keypair,
+    connection: &RpcClient,
+) -> Result<u8> {
+    let bj_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
+    let account = connection.get_account(&bj_pubkey)?;
+    let account_data = utils::BlackJackAccountSchema::try_from_slice(&account.data)
+        .map_err(|e| Error::SerializationError(e))?;
+    println!("Dealer faced up card is {}", account_data.dealer_start2);
+    Ok(account_data.dealer_start2)
 }
