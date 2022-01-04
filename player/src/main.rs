@@ -35,6 +35,22 @@ fn main() {
 
     let program = bj_client::client::get_program(keypair_path, &connection).unwrap();
 
-    let dealer_faced_up =
-        bj_client::actions::get_dealer_faced_up(&player, &program, &connection).unwrap();
+    bj_client::actions::get_dealer_faced_up(&player, &program, &connection).unwrap();
+
+    loop {
+        println!("Enter option:");
+        println!("1) Hit");
+        println!("2) Stand");
+        println!("3) Exit");
+        let mut line = String::new();
+        std::io::stdin().read_line(&mut line).unwrap();
+        line = line.trim().to_string();
+        if line == "1" {
+            bj_client::actions::hit(&player, &program, &connection).unwrap();
+        } else if line == "2" {
+            bj_client::actions::stand(&player, &program, &connection).unwrap();
+        } else if line == "3" {
+            break;
+        }
+    }
 }

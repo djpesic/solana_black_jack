@@ -41,9 +41,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct BlackJackAccountSchema {
     //initial dealer cards, at the game's beginning.
-    pub dealer_start1: u8, //this card is not visible to players.
-    pub dealer_start2: u8, // this card is visible to players.
-    pub player_hand: u8,   // contatins sum of the player's cards.
+    pub dealer_start1: u8,   //this card is not visible to players.
+    pub dealer_start2: u8,   // this card is visible to players.
+    pub player_hand: u8,     // contatins sum of the player's cards.
+    pub current_card: usize, //current index inside the deck
     pub cards: Vec<u8>,
 }
 
@@ -148,6 +149,7 @@ pub fn get_blackjack_data_size() -> Result<usize> {
         dealer_start1: 0,
         dealer_start2: 0,
         player_hand: 0,
+        current_card: 0,
     }
     .try_to_vec()
     .map_err(|e| Error::SerializationError(e))?;

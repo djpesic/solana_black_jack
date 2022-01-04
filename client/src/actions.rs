@@ -94,3 +94,13 @@ pub fn get_dealer_faced_up(
     println!("Dealer faced up card is {}", account_data.dealer_start2);
     Ok(account_data.dealer_start2)
 }
+
+/// Hit game action. Take a card from the dealer.
+pub fn hit(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<u8> {
+    Ok((0))
+}
+
+/// Stand game action. Player ends game, and saves collected score.
+pub fn stand(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<u8> {
+    Ok(0)
+}

@@ -13,10 +13,11 @@ pub struct SendDeck {
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct BlackJackAccount {
     //initial dealer cards, at the game's beginning.
-    pub dealer_start1: u8, //this card is not visible to players.
-    pub dealer_start2: u8, // this card is visible to players.
-    pub player_hand: u8,   // contatins sum of the player's cards.
-    pub cards: Vec<u8>,
+    pub dealer_start1: u8,   //this card is not visible to players.
+    pub dealer_start2: u8,   // this card is visible to players.
+    pub player_hand: u8,     // contatins sum of the player's cards.
+    pub current_card: usize, //current index inside the deck
+    pub cards: Vec<u8>,      // deck of cards
 }
 //instruction codes. Used in program, for switching.
 pub const SEND_DECK: u8 = 0;
@@ -33,12 +34,14 @@ pub fn unpack_send_deck(instruction_data: &[u8], account_info: &AccountInfo) {
             return;
         }
     };
-    let account = BlackJackAccount {
+    let mut account = BlackJackAccount {
         cards: send_deck_instruction.deck,
         dealer_start1: 0,
         dealer_start2: 0,
         player_hand: 0,
+        current_card: 0,
     };
+    account.current_card = account.cards.len() - 1;
     msg!("Received deck: {:?}", account.cards);
 
     match account.serialize(&mut &mut account_info.data.borrow_mut()[..]) {
@@ -62,42 +65,55 @@ pub fn unpack_deal(account_info: &AccountInfo) {
             return;
         }
     };
-    bj_account.dealer_start1 = match bj_account.cards.pop() {
-        Some(c) => c,
+    match bj_account.cards.get_mut(bj_account.current_card) {
+        Some(c) => {
+            bj_account.dealer_start1 = *c;
+            *c = 0;
+            bj_account.current_card -= 1;
+        }
         None => {
             //todo: handle no cards left to deal case more properly. Client should be notified by some event.
             msg!("No cards left to deal (1)!");
             return;
         }
     };
-    bj_account.dealer_start2 = match bj_account.cards.pop() {
-        Some(c) => c,
+    match bj_account.cards.get_mut(bj_account.current_card) {
+        Some(c) => {
+            bj_account.dealer_start2 = *c;
+            *c = 0;
+            bj_account.current_card -= 1;
+        }
         None => {
             //todo: handle no cards left to deal case more properly. Client should be notified by some event.
-            msg!("No cards left to deal (2)!");
+            msg!("No cards left to deal (1)!");
             return;
         }
     };
-    bj_account.player_hand = match bj_account.cards.pop() {
-        Some(c) => c,
+    match bj_account.cards.get_mut(bj_account.current_card) {
+        Some(c) => {
+            bj_account.player_hand = *c;
+            *c = 0;
+            bj_account.current_card -= 1;
+        }
         None => {
             //todo: handle no cards left to deal case more properly. Client should be notified by some event.
-            msg!("No cards left to deal (3)!");
+            msg!("No cards left to deal (1)!");
             return;
         }
     };
-    bj_account.player_hand += match bj_account.cards.pop() {
-        Some(c) => c,
+    match bj_account.cards.get_mut(bj_account.current_card) {
+        Some(c) => {
+            bj_account.player_hand += *c;
+            *c = 0;
+            bj_account.current_card -= 1;
+        }
         None => {
             //todo: handle no cards left to deal case more properly. Client should be notified by some event.
-            msg!("No cards left to deal (4)!");
+            msg!("No cards left to deal (1)!");
             return;
         }
     };
-    bj_account.cards.push(0);
-    bj_account.cards.push(0);
-    bj_account.cards.push(0);
-    bj_account.cards.push(0);
+
     match bj_account.serialize(&mut &mut account_info.data.borrow_mut()[..]) {
         Ok(_) => {
             msg!("Deal finished, account: {:?}", bj_account);
