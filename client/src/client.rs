@@ -1,6 +1,13 @@
 use utils;
 
+use solana_account_decoder;
+use solana_account_decoder::UiAccount;
+use solana_client::pubsub_client::{
+    AccountSubscription, PubsubAccountClientSubscription, PubsubClient,
+};
 use solana_client::rpc_client::RpcClient;
+use solana_client::rpc_config::RpcAccountInfoConfig;
+use solana_sdk::account::WritableAccount;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::message::Message;
 use solana_sdk::signature::Signer;
@@ -19,6 +26,40 @@ pub fn establish_connection() -> Result<RpcClient> {
         CommitmentConfig::confirmed(),
     ))
 }
+
+///Get publish-subscribe client from solana cluster configured by
+/// `solana config set --url <URL>`. Information about what cluster
+/// has been configured is gleened from the solana config file
+/// `~/.config/solana/cli/config.yml`.
+/// Warning:
+/// Can't properly unsubscribe, see https://github.com/solana-labs/solana/issues/16102
+///
+pub fn establish_pub_sub_connection(
+    player: &Keypair,
+    program: &Keypair,
+) -> Result<AccountSubscription> {
+    let pubkey = match utils::get_account_public_key(&player.pubkey(), &program.pubkey()) {
+        Ok(key) => key,
+        Err(_) => {
+            return Err(Error::Error(String::from(
+                "Error in getting account public key",
+            )));
+        }
+    };
+    let ws_url = "ws://127.0.0.1:8900";
+    let pubsub_client = match PubsubClient::account_subscribe(ws_url, &pubkey, None) {
+        Ok(cl) => cl,
+        Err(e) => {
+            println!("{:?}", e);
+            return Err(Error::Error(String::from(
+                "Error in getting account publish-subscribe subscription",
+            )));
+        }
+    };
+    Ok(pubsub_client)
+}
+
+pub fn process_solana_network_event(account: UiAccount) {}
 
 /// Determines the amount of lamports that will be required to execute
 /// this smart contract. The minimum balance is calculated assuming

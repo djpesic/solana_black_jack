@@ -13,3 +13,4 @@ rand = "0.8.4"
 utils = { path= "../utils"}
 instructions = {path="../instructions"}
 borsh = "0.9.1"
+solana-account-decoder="1.9.2"
