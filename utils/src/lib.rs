@@ -51,6 +51,7 @@ pub struct BlackJackAccountDataSchema {
 //instruction codes. Used in program, for switching.
 pub const SEND_DECK: u8 = 0;
 pub const DEAL: u8 = 1;
+pub const REQUEST_NEW_DECK: u8 = 2;
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct SendDeck {
     pub deck: Vec<u8>,

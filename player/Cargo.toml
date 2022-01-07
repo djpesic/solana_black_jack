@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 black_jack_client = {path="../client"}
 utils = {path="../utils"}
+std-semaphore="0.1.0"

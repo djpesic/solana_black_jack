@@ -50,14 +50,30 @@ fn main() {
 
     let receiver = account_subscription.1;
     let end_recv = Arc::new(Mutex::new(false));
-    let end_recv1 = Arc::clone(&end_recv);
 
+    let end_recv1 = Arc::clone(&end_recv);
+    let dealer_lock = Arc::new(Mutex::new(dealer));
+    let dealer_lock1 = Arc::clone(&dealer_lock);
+    let program_lock = Arc::new(Mutex::new(program));
+    let program_lock1 = Arc::clone(&program_lock);
+    let conn_lock = Arc::new(Mutex::new(connection));
+    let conn_lock1 = Arc::clone(&conn_lock);
     let recv_thread = thread::spawn(move || loop {
         match receiver.recv_timeout(Duration::from_secs(2)) {
             Ok(val) => {
                 let val = val.value;
                 println!("Received event from solana network: {:?}", val);
-                bj_client::client::process_solana_network_event(val);
+                let account = match bj_client::client::process_solana_network_event(val) {
+                    Ok(acc) => acc,
+                    Err(_) => continue,
+                };
+                if account.last_operation == utils::REQUEST_NEW_DECK {
+                    let dealer = dealer_lock1.lock().unwrap();
+                    let program = program_lock1.lock().unwrap();
+                    let connection = conn_lock1.lock().unwrap();
+                    bj_client::actions::send_deck(&dealer, &program, &connection).unwrap();
+                    println!("Dealer dealt a new deck of cards");
+                }
             }
             Err(RecvTimeoutError::Timeout) => {
                 let should_finish = end_recv1.lock().unwrap();
@@ -73,12 +89,17 @@ fn main() {
         }
     });
 
-    println!("Send deck of cards");
-    bj_client::actions::send_deck(&dealer, &program, &connection).unwrap();
-    println!("Dealer sent deck of cards");
+    {
+        let dealer = dealer_lock.lock().unwrap();
+        let program = program_lock.lock().unwrap();
+        let connection = conn_lock.lock().unwrap();
+        println!("Send deck of cards");
+        bj_client::actions::send_deck(&dealer, &program, &connection).unwrap();
+        println!("Dealer sent deck of cards");
 
-    bj_client::actions::deal(&dealer, &program, &connection).unwrap();
-    println!("Cards are dealt");
+        bj_client::actions::deal(&dealer, &program, &connection).unwrap();
+        println!("Cards are dealt");
+    }
 
     loop {
         println!("Enter option:");
@@ -89,8 +110,14 @@ fn main() {
         std::io::stdin().read_line(&mut line).unwrap();
         line = line.trim().to_string();
         if line == "1" {
+            let dealer = dealer_lock.lock().unwrap();
+            let program = program_lock.lock().unwrap();
+            let connection = conn_lock.lock().unwrap();
             bj_client::actions::hit(&dealer, &program, &connection).unwrap();
         } else if line == "2" {
+            let dealer = dealer_lock.lock().unwrap();
+            let program = program_lock.lock().unwrap();
+            let connection = conn_lock.lock().unwrap();
             bj_client::actions::stand(&dealer, &program, &connection).unwrap();
         } else if line == "3" {
             *(end_recv.lock().unwrap()) = true;

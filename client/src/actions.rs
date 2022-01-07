@@ -35,7 +35,6 @@ fn send(player: &Keypair, program: &Keypair, connection: &RpcClient, data: &Vec<
     // run. We pass the account that we want the results to be stored
     // in as one of the accounts arguments which the program will
     // handle. Instruction also contains serialized deck of cards, and solana program public key.
-    println!("Create send deck instruction");
     let instruction = Instruction::new_with_bytes(
         program.pubkey(),
         &data,
@@ -82,17 +81,24 @@ pub fn deal(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Resu
     send(player, program, connection, &data)
 }
 /// Get dealer's faced-up card.
-pub fn get_dealer_faced_up(
-    player: &Keypair,
-    program: &Keypair,
-    connection: &RpcClient,
-) -> Result<u8> {
+pub fn get_init_status(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<u8> {
     let bj_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
     let account = connection.get_account(&bj_pubkey)?;
     let account_data = utils::BlackJackAccountDataSchema::try_from_slice(&account.data)
         .map_err(|e| Error::SerializationError(e))?;
     println!("Dealer faced up card is {}", account_data.dealer_start2);
+    println!("Sum of initial player hand is {}", account_data.player_hand);
     Ok(account_data.dealer_start2)
+}
+
+pub fn is_deck_dealt(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<bool> {
+    println!("Check if deck is alraedy dealt");
+    let bj_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
+    let account = connection.get_account(&bj_pubkey)?;
+    let account_data = utils::BlackJackAccountDataSchema::try_from_slice(&account.data)
+        .map_err(|e| Error::SerializationError(e))?;
+    println!("Deck dealt: {}", account_data.last_operation == utils::DEAL);
+    Ok(account_data.last_operation == utils::DEAL)
 }
 
 /// Hit game action. Take a card from the dealer.

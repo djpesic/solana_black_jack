@@ -60,17 +60,30 @@ pub fn establish_pub_sub_connection(
     Ok(pubsub_client)
 }
 
-pub fn process_solana_network_event(account: UiAccount) {
+pub fn process_solana_network_event(
+    account: UiAccount,
+) -> Result<utils::BlackJackAccountDataSchema> {
     let decoded: Account = match account.decode() {
         Some(a) => a,
         None => {
             println!("Decoding error");
-            return;
+            return Err(Error::Error(String::from(
+                "Account can't be decoded properly.",
+            )));
         }
     };
     println!("Decoded account: {:?}", decoded);
-    let acc_data = utils::BlackJackAccountDataSchema::try_from_slice(&decoded.data).unwrap();
+    let acc_data = match utils::BlackJackAccountDataSchema::try_from_slice(&decoded.data) {
+        Ok(acc) => acc,
+        Err(e) => {
+            println!("{:?}", e);
+            return Err(Error::Error(String::from(
+                "Received event does not contain blackjack account data",
+            )));
+        }
+    };
     println!("Decoded account data: {:?}", acc_data);
+    Ok(acc_data)
 }
 
 /// Determines the amount of lamports that will be required to execute

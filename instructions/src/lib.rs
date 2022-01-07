@@ -23,6 +23,7 @@ pub struct BlackJackAccountData {
 //instruction codes. Used in program, for switching.
 pub const SEND_DECK: u8 = 0;
 pub const DEAL: u8 = 1;
+pub const REQUEST_NEW_DECK: u8 = 2;
 
 //public constants
 pub const CARD_NUMBER: u8 = 52;
@@ -74,8 +75,8 @@ pub fn unpack_deal(account_info: &AccountInfo) {
             bj_account.current_card -= 1;
         }
         None => {
-            //todo: handle no cards left to deal case more properly. Client should be notified by some event.
-            msg!("No cards left to deal (1)!");
+            msg!("No cards left to deal!");
+            bj_account.last_operation = REQUEST_NEW_DECK;
             return;
         }
     };
@@ -86,8 +87,8 @@ pub fn unpack_deal(account_info: &AccountInfo) {
             bj_account.current_card -= 1;
         }
         None => {
-            //todo: handle no cards left to deal case more properly. Client should be notified by some event.
-            msg!("No cards left to deal (1)!");
+            msg!("No cards left to deal!");
+            bj_account.last_operation = REQUEST_NEW_DECK;
             return;
         }
     };
@@ -98,8 +99,8 @@ pub fn unpack_deal(account_info: &AccountInfo) {
             bj_account.current_card -= 1;
         }
         None => {
-            //todo: handle no cards left to deal case more properly. Client should be notified by some event.
-            msg!("No cards left to deal (1)!");
+            msg!("No cards left to deal!");
+            bj_account.last_operation = REQUEST_NEW_DECK;
             return;
         }
     };
@@ -110,8 +111,8 @@ pub fn unpack_deal(account_info: &AccountInfo) {
             bj_account.current_card -= 1;
         }
         None => {
-            //todo: handle no cards left to deal case more properly. Client should be notified by some event.
-            msg!("No cards left to deal (1)!");
+            msg!("No cards left to deal!");
+            bj_account.last_operation = REQUEST_NEW_DECK;
             return;
         }
     };

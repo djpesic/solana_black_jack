@@ -1,4 +1,12 @@
+extern crate std_semaphore;
+
 use black_jack_client as bj_client;
+use std::process::exit;
+use std::sync::mpsc::RecvTimeoutError;
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
+use std_semaphore::Semaphore;
 
 fn main() {
     let args = std::env::args().collect::<Vec<_>>();
@@ -35,7 +43,45 @@ fn main() {
 
     let program = bj_client::client::get_program(keypair_path, &connection).unwrap();
 
-    bj_client::actions::get_dealer_faced_up(&player, &program, &connection).unwrap();
+    let account_subscription =
+        bj_client::client::establish_pub_sub_connection(&player, &program).unwrap();
+
+    let receiver = account_subscription.1;
+    let end_recv = Arc::new(Mutex::new(false));
+    let end_recv1 = Arc::clone(&end_recv);
+
+    let deck_created = Arc::new(Semaphore::new(0));
+    let deck_created1 = Arc::clone(&deck_created);
+
+    let recv_thread = thread::spawn(move || loop {
+        match receiver.recv_timeout(Duration::from_secs(2)) {
+            Ok(val) => {
+                let val = val.value;
+                println!("Received event from solana network: {:?}", val);
+                let account_data = bj_client::client::process_solana_network_event(val).unwrap();
+                if account_data.last_operation == utils::DEAL {
+                    (*deck_created1).release();
+                }
+            }
+            Err(RecvTimeoutError::Timeout) => {
+                let should_finish = end_recv1.lock().unwrap();
+                if *should_finish {
+                    println!("Receiver ended properly.");
+                    return;
+                }
+            }
+            Err(RecvTimeoutError::Disconnected) => {
+                println!("Received disconnected");
+                return;
+            }
+        }
+    });
+    if !bj_client::actions::is_deck_dealt(&player, &program, &connection).unwrap() {
+        println!("Waiting for dealer do create the deck");
+        (*deck_created).acquire();
+    }
+    println!("Cards are dealt, now game can begin");
+    bj_client::actions::get_init_status(&player, &program, &connection).unwrap();
 
     loop {
         println!("Enter option:");
@@ -50,7 +96,11 @@ fn main() {
         } else if line == "2" {
             bj_client::actions::stand(&player, &program, &connection).unwrap();
         } else if line == "3" {
+            *(end_recv.lock().unwrap()) = true;
+            recv_thread.join().unwrap();
             break;
         }
     }
+    // must be called, because pubsubclient currently can't unsubscribe from the network.
+    exit(0);
 }
