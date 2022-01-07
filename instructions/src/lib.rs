@@ -12,6 +12,7 @@ pub struct SendDeck {
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct BlackJackAccountData {
+    pub last_operation: u8, // last operation done on account
     //initial dealer cards, at the game's beginning.
     pub dealer_start1: u8,   //this card is not visible to players.
     pub dealer_start2: u8,   // this card is visible to players.
@@ -35,6 +36,7 @@ pub fn unpack_send_deck(instruction_data: &[u8], account_info: &AccountInfo) {
         }
     };
     let mut account = BlackJackAccountData {
+        last_operation: SEND_DECK,
         cards: send_deck_instruction.deck,
         dealer_start1: 0,
         dealer_start2: 0,
@@ -113,6 +115,7 @@ pub fn unpack_deal(account_info: &AccountInfo) {
             return;
         }
     };
+    bj_account.last_operation = DEAL;
 
     match bj_account.serialize(&mut &mut account_info.data.borrow_mut()[..]) {
         Ok(_) => {

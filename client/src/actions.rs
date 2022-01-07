@@ -15,9 +15,9 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
     let deck = generate_deck();
     //serialize deck
     let mut encoded_deck: Vec<u8> = Vec::new();
-    encoded_deck.push(instructions::SEND_DECK);
+    encoded_deck.push(utils::SEND_DECK);
     println!("Serialize deck");
-    if let Err(_) = (instructions::SendDeck { deck: deck }.serialize(&mut encoded_deck)) {
+    if let Err(_) = (utils::SendDeck { deck: deck }.serialize(&mut encoded_deck)) {
         return Err(utils::Error::Error(String::from(
             "Deck serialization error",
         )));
@@ -77,7 +77,7 @@ fn generate_deck() -> Vec<u8> {
 /// Init deal operation. Dealing will be done inside the on-chain program.
 pub fn deal(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
     let mut data: Vec<u8> = Vec::new();
-    data.push(instructions::DEAL);
+    data.push(utils::DEAL);
     println!("Init dealing.");
     send(player, program, connection, &data)
 }
