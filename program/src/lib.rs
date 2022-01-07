@@ -14,7 +14,7 @@ entrypoint!(process_instruction);
 
 /// Logic that runs when the program is executed.
 ///
-/// The account passed in ought to contain a `BlackJackAccount`.
+/// The account passed in ought to contain a `BlackJackAccountData`.
 pub fn process_instruction(
     program_id: &Pubkey,
     accounts: &[AccountInfo],

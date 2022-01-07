@@ -89,7 +89,7 @@ pub fn get_dealer_faced_up(
 ) -> Result<u8> {
     let bj_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
     let account = connection.get_account(&bj_pubkey)?;
-    let account_data = utils::BlackJackAccountSchema::try_from_slice(&account.data)
+    let account_data = utils::BlackJackAccountDataSchema::try_from_slice(&account.data)
         .map_err(|e| Error::SerializationError(e))?;
     println!("Dealer faced up card is {}", account_data.dealer_start2);
     Ok(account_data.dealer_start2)

@@ -8,10 +8,10 @@ pub struct SendDeck {
 }
 
 // The type of state managed by this program. The type defined here
-// must match the `BlackJackAccount` type defined by the client.
+// must match the `BlackJackAccountData` type defined by the client.
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
-pub struct BlackJackAccount {
+pub struct BlackJackAccountData {
     //initial dealer cards, at the game's beginning.
     pub dealer_start1: u8,   //this card is not visible to players.
     pub dealer_start2: u8,   // this card is visible to players.
@@ -34,7 +34,7 @@ pub fn unpack_send_deck(instruction_data: &[u8], account_info: &AccountInfo) {
             return;
         }
     };
-    let mut account = BlackJackAccount {
+    let mut account = BlackJackAccountData {
         cards: send_deck_instruction.deck,
         dealer_start1: 0,
         dealer_start2: 0,
@@ -58,7 +58,7 @@ pub fn unpack_send_deck(instruction_data: &[u8], account_info: &AccountInfo) {
 
 pub fn unpack_deal(account_info: &AccountInfo) {
     msg!("Received deal command");
-    let mut bj_account = match BlackJackAccount::try_from_slice(&account_info.data.borrow()) {
+    let mut bj_account = match BlackJackAccountData::try_from_slice(&account_info.data.borrow()) {
         Ok(acc) => acc,
         Err(_) => {
             msg!("Account serialization error");

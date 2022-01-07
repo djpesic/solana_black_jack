@@ -36,10 +36,10 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// The schema for storage in blackjac accounts. This is what
+/// The schema for storage in blackjack accounts. This is what
 /// is serialized into the account and later updated.
-#[derive(BorshSerialize, BorshDeserialize)]
-pub struct BlackJackAccountSchema {
+#[derive(BorshSerialize, BorshDeserialize, Debug)]
+pub struct BlackJackAccountDataSchema {
     //initial dealer cards, at the game's beginning.
     pub dealer_start1: u8,   //this card is not visible to players.
     pub dealer_start2: u8,   // this card is visible to players.
@@ -144,7 +144,7 @@ pub fn get_blackjack_data_size() -> Result<usize> {
     for i in 0..52 {
         vec.push(i);
     }
-    let encoded = BlackJackAccountSchema {
+    let encoded = BlackJackAccountDataSchema {
         cards: vec,
         dealer_start1: 0,
         dealer_start2: 0,

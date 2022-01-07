@@ -1,5 +1,6 @@
 use utils;
 
+use borsh::{BorshDeserialize, BorshSerialize};
 use solana_account_decoder;
 use solana_account_decoder::UiAccount;
 use solana_client::pubsub_client::{
@@ -7,7 +8,7 @@ use solana_client::pubsub_client::{
 };
 use solana_client::rpc_client::RpcClient;
 use solana_client::rpc_config::RpcAccountInfoConfig;
-use solana_sdk::account::WritableAccount;
+use solana_sdk::account::Account;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::message::Message;
 use solana_sdk::signature::Signer;
@@ -59,7 +60,18 @@ pub fn establish_pub_sub_connection(
     Ok(pubsub_client)
 }
 
-pub fn process_solana_network_event(account: UiAccount) {}
+pub fn process_solana_network_event(account: UiAccount) {
+    let decoded: Account = match account.decode() {
+        Some(a) => a,
+        None => {
+            println!("Decoding error");
+            return;
+        }
+    };
+    println!("Decoded account: {:?}", decoded);
+    let acc_data = utils::BlackJackAccountDataSchema::try_from_slice(&decoded.data).unwrap();
+    println!("Decoded account data: {:?}", acc_data);
+}
 
 /// Determines the amount of lamports that will be required to execute
 /// this smart contract. The minimum balance is calculated assuming
