@@ -66,7 +66,7 @@ fn main() {
         match receiver.recv_timeout(Duration::from_secs(2)) {
             Ok(val) => {
                 let val = val.value;
-                println!("Received event from solana network: {:?}", val);
+                // println!("Received event from solana network: {:?}", val);
                 let account_data = bj_client::client::process_solana_network_event(val).unwrap();
                 if account_data.last_operation == utils::DEAL {
                     deck_created1.release();
@@ -77,7 +77,10 @@ fn main() {
                     }
                     hit_sem1.release();
                 } else if account_data.last_operation == utils::DEALER_BUSTED {
-                    println!("Dealer busted");
+                    println!("Dealer busted,player wins");
+                    dealer_finished1.release();
+                } else if account_data.last_operation == utils::DEALER_STAND {
+                    println!("Dealer wins");
                     dealer_finished1.release();
                 }
             }
@@ -99,35 +102,47 @@ fn main() {
         deck_created.acquire();
     }
     println!("Cards are dealt, now game can begin");
-    bj_client::actions::get_init_status(&player, &program, &connection).unwrap();
-
-    loop {
-        println!("Enter option:");
-        println!("1) Hit");
-        println!("2) Stand");
-        println!("3) Exit");
-        let mut line = String::new();
-        std::io::stdin().read_line(&mut line).unwrap();
-        line = line.trim().to_string();
-        if line == "1" {
-            bj_client::actions::hit(&player, &program, &connection, utils::PLAYER_HIT).unwrap();
-            hit_sem.acquire();
-            if *busted.lock().unwrap() {
-                println!("PLAYER BUSTED");
-                //notify dealer and finish
-                bj_client::actions::busted(&player, &program, &connection, utils::PLAYER_BUSTED)
+    let init_player_hand =
+        bj_client::actions::get_init_status(&player, &program, &connection).unwrap();
+    if init_player_hand > 21 {
+        println!("PLAYER BUSTED");
+        //notify dealer and finish
+        bj_client::actions::busted(&player, &program, &connection, utils::PLAYER_BUSTED).unwrap();
+    } else {
+        loop {
+            println!("Enter option:");
+            println!("1) Hit");
+            println!("2) Stand");
+            println!("3) Exit");
+            let mut line = String::new();
+            std::io::stdin().read_line(&mut line).unwrap();
+            line = line.trim().to_string();
+            if line == "1" {
+                bj_client::actions::hit(&player, &program, &connection, utils::PLAYER_HIT).unwrap();
+                hit_sem.acquire();
+                if *busted.lock().unwrap() {
+                    println!("PLAYER BUSTED");
+                    //notify dealer and finish
+                    bj_client::actions::busted(
+                        &player,
+                        &program,
+                        &connection,
+                        utils::PLAYER_BUSTED,
+                    )
                     .unwrap();
+                    break;
+                }
+            } else if line == "2" {
+                bj_client::actions::stand(&player, &program, &connection, utils::PLAYER_STAND)
+                    .unwrap();
+                println!("Wait dealer to finish");
+                //wait for dealer to finish
+                dealer_finished.acquire();
+                break;
+            } else if line == "3" {
+                bj_client::actions::clear_data(&player, &program, &connection).unwrap();
                 break;
             }
-        } else if line == "2" {
-            bj_client::actions::stand(&player, &program, &connection, utils::PLAYER_STAND).unwrap();
-            //wait for dealer to finish
-            dealer_finished.acquire();
-
-            break;
-        } else if line == "3" {
-            bj_client::actions::clear_data(&player, &program, &connection).unwrap();
-            break;
         }
     }
     //finish player

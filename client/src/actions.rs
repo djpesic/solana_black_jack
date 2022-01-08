@@ -22,8 +22,8 @@ pub fn send_deck(player: &Keypair, program: &Keypair, connection: &RpcClient) ->
             "Deck serialization error",
         )));
     }
-    println!("Serialized deck len: {}", encoded_deck.len());
-    println!("Serialized deck: {:?}", encoded_deck);
+    // println!("Serialized deck len: {}", encoded_deck.len());
+    // println!("Serialized deck: {:?}", encoded_deck);
     send(player, program, connection, &encoded_deck)
 }
 
@@ -70,7 +70,7 @@ fn generate_deck() -> Vec<u8> {
 
     let mut rng = thread_rng();
     result.shuffle(&mut rng);
-    println!("Generated deck: {:?}", result);
+    // println!("Generated deck: {:?}", result);
     result
 }
 /// Init deal operation. Dealing will be done inside the on-chain program.
@@ -89,7 +89,7 @@ pub fn clear_data(player: &Keypair, program: &Keypair, connection: &RpcClient) -
     send(player, program, connection, &data)
 }
 
-/// Get dealer's faced-up card.
+/// Get init status.
 pub fn get_init_status(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<u8> {
     let bj_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
     let account = connection.get_account(&bj_pubkey)?;
@@ -97,7 +97,7 @@ pub fn get_init_status(player: &Keypair, program: &Keypair, connection: &RpcClie
         .map_err(|e| Error::SerializationError(e))?;
     println!("Dealer faced up card is {}", account_data.dealer_start2);
     println!("Sum of initial player hand is {}", account_data.player_hand);
-    Ok(account_data.dealer_start2)
+    Ok(account_data.player_hand)
 }
 
 pub fn is_deck_dealt(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<bool> {

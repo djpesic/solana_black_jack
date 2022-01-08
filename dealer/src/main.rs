@@ -69,11 +69,17 @@ fn main() {
     let hit_sem = Arc::new(Semaphore::new(0));
     let hit_sem1 = Arc::clone(&hit_sem);
 
+    let last_player_hand = Arc::new(Mutex::new(0));
+    let last_player_hand1 = Arc::clone(&last_player_hand);
+
+    let dealer_hand = Arc::new(Mutex::new(0));
+    let dealer_hand1 = Arc::clone(&dealer_hand);
+
     let recv_thread = thread::spawn(move || loop {
         match receiver.recv_timeout(Duration::from_secs(2)) {
             Ok(val) => {
                 let val = val.value;
-                println!("Received event from solana network: {:?}", val);
+                // println!("Received event from solana network: {:?}", val);
                 let account_data = match bj_client::client::process_solana_network_event(val) {
                     Ok(acc) => acc,
                     Err(_) => continue,
@@ -88,9 +94,13 @@ fn main() {
                     *is_busted1.lock().unwrap() = true;
                     wait_player1.release();
                 } else if account_data.last_operation == utils::PLAYER_STAND {
+                    println!("Player stands with {}", account_data.player_hand);
+                    println!("Sum of dealer current hand is {}", account_data.dealer_hand);
+                    *last_player_hand1.lock().unwrap() = account_data.player_hand;
                     wait_player1.release();
                 } else if account_data.last_operation == utils::DEALER_HIT {
                     println!("Sum of current dealer hand is {}", account_data.dealer_hand);
+                    *dealer_hand1.lock().unwrap() = account_data.dealer_hand;
                     if account_data.dealer_hand > 21 {
                         *is_busted1.lock().unwrap() = true;
                     }
@@ -135,6 +145,7 @@ fn main() {
         exit(0);
     }
 
+    println!("Delaer should hit until beats player, or go busted");
     loop {
         println!("Enter option:");
         println!("1) Hit");
@@ -157,10 +168,16 @@ fn main() {
                 break;
             }
         } else if line == "2" {
-            let dealer = dealer_lock.lock().unwrap();
-            let program = program_lock.lock().unwrap();
-            let connection = conn_lock.lock().unwrap();
-            bj_client::actions::stand(&dealer, &program, &connection, utils::DEALER_STAND).unwrap();
+            if *dealer_hand.lock().unwrap() > *last_player_hand.lock().unwrap() {
+                let dealer = dealer_lock.lock().unwrap();
+                let program = program_lock.lock().unwrap();
+                let connection = conn_lock.lock().unwrap();
+                bj_client::actions::stand(&dealer, &program, &connection, utils::DEALER_STAND)
+                    .unwrap();
+                break;
+            } else {
+                println!("Dealer should continue hitting");
+            }
         } else if line == "3" {
             break;
         }

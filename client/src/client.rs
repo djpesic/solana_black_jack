@@ -1,13 +1,10 @@
 use utils;
 
-use borsh::{BorshDeserialize, BorshSerialize};
+use borsh::BorshDeserialize;
 use solana_account_decoder;
 use solana_account_decoder::UiAccount;
-use solana_client::pubsub_client::{
-    AccountSubscription, PubsubAccountClientSubscription, PubsubClient,
-};
+use solana_client::pubsub_client::{AccountSubscription, PubsubClient};
 use solana_client::rpc_client::RpcClient;
-use solana_client::rpc_config::RpcAccountInfoConfig;
 use solana_sdk::account::Account;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::message::Message;
@@ -72,7 +69,6 @@ pub fn process_solana_network_event(
             )));
         }
     };
-    println!("Decoded account: {:?}", decoded);
     let acc_data = match utils::BlackJackAccountDataSchema::try_from_slice(&decoded.data) {
         Ok(acc) => acc,
         Err(e) => {
@@ -82,7 +78,7 @@ pub fn process_solana_network_event(
             )));
         }
     };
-    println!("Decoded account data: {:?}", acc_data);
+    // println!("Decoded account data: {:?}", acc_data);
     Ok(acc_data)
 }
 
