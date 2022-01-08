@@ -1,10 +1,11 @@
+extern crate std_semaphore;
 use black_jack_client as bj_client;
 use std::process::exit;
 use std::sync::mpsc::RecvTimeoutError;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-
+use std_semaphore::Semaphore;
 fn main() {
     let args = std::env::args().collect::<Vec<_>>();
     if args.len() != 2 {
@@ -58,6 +59,13 @@ fn main() {
     let program_lock1 = Arc::clone(&program_lock);
     let conn_lock = Arc::new(Mutex::new(connection));
     let conn_lock1 = Arc::clone(&conn_lock);
+
+    let wait_player = Arc::new(Semaphore::new(0));
+    let wait_player1 = Arc::clone(&wait_player);
+
+    let is_busted = Arc::new(Mutex::new(false));
+    let is_busted1 = Arc::clone(&is_busted);
+
     let recv_thread = thread::spawn(move || loop {
         match receiver.recv_timeout(Duration::from_secs(2)) {
             Ok(val) => {
@@ -73,6 +81,11 @@ fn main() {
                     let connection = conn_lock1.lock().unwrap();
                     bj_client::actions::send_deck(&dealer, &program, &connection).unwrap();
                     println!("Dealer dealt a new deck of cards");
+                } else if account.last_operation == utils::PLAYER_BUSTED {
+                    *is_busted1.lock().unwrap() = true;
+                    wait_player1.release();
+                } else if account.last_operation == utils::PLAYER_STAND {
+                    wait_player1.release();
                 }
             }
             Err(RecvTimeoutError::Timeout) => {
@@ -98,7 +111,19 @@ fn main() {
         println!("Dealer sent deck of cards");
 
         bj_client::actions::deal(&dealer, &program, &connection).unwrap();
-        println!("Cards are dealt");
+        println!("Cards are dealt, waiting for player to finish");
+    }
+    wait_player.acquire();
+    if *is_busted.lock().unwrap() {
+        println!("Player busted, dealer wins.");
+        *(end_recv.lock().unwrap()) = true;
+        recv_thread.join().unwrap();
+        let dealer = dealer_lock.lock().unwrap();
+        let program = program_lock.lock().unwrap();
+        let connection = conn_lock.lock().unwrap();
+        bj_client::actions::clear_data(&dealer, &program, &connection).unwrap();
+        // must be called, because pubsubclient currently can't unsubscribe from the network.
+        exit(0);
     }
 
     loop {
@@ -113,12 +138,12 @@ fn main() {
             let dealer = dealer_lock.lock().unwrap();
             let program = program_lock.lock().unwrap();
             let connection = conn_lock.lock().unwrap();
-            bj_client::actions::hit(&dealer, &program, &connection).unwrap();
+            bj_client::actions::hit(&dealer, &program, &connection, utils::DEALER_HIT).unwrap();
         } else if line == "2" {
             let dealer = dealer_lock.lock().unwrap();
             let program = program_lock.lock().unwrap();
             let connection = conn_lock.lock().unwrap();
-            bj_client::actions::stand(&dealer, &program, &connection).unwrap();
+            bj_client::actions::stand(&dealer, &program, &connection, utils::DEALER_STAND).unwrap();
         } else if line == "3" {
             *(end_recv.lock().unwrap()) = true;
             recv_thread.join().unwrap();

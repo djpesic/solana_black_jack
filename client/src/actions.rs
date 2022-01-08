@@ -101,7 +101,7 @@ pub fn get_init_status(player: &Keypair, program: &Keypair, connection: &RpcClie
 }
 
 pub fn is_deck_dealt(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<bool> {
-    println!("Check if deck is alraedy dealt");
+    println!("Check if deck is already dealt");
     let bj_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
     let account = connection.get_account(&bj_pubkey)?;
     let account_data = utils::BlackJackAccountDataSchema::try_from_slice(&account.data)
@@ -110,12 +110,36 @@ pub fn is_deck_dealt(player: &Keypair, program: &Keypair, connection: &RpcClient
     Ok(account_data.last_operation == utils::DEAL)
 }
 
-/// Hit game action. Take a card from the dealer.
-pub fn hit(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<u8> {
-    Ok((0))
+/// Init hit game action. Procedure will be done on the onchain program.
+pub fn hit(
+    player: &Keypair,
+    program: &Keypair,
+    connection: &RpcClient,
+    operation: u8,
+) -> Result<()> {
+    let mut data: Vec<u8> = Vec::new();
+    data.push(operation);
+    println!("Init hit game action.");
+    send(player, program, connection, &data)
 }
 
 /// Stand game action. Player ends game, and saves collected score.
-pub fn stand(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<u8> {
-    Ok(0)
+pub fn stand(
+    player: &Keypair,
+    program: &Keypair,
+    connection: &RpcClient,
+    operation: u8,
+) -> Result<()> {
+    let mut data: Vec<u8> = Vec::new();
+    data.push(operation);
+    println!("Init hit game action.");
+    send(player, program, connection, &data)
+}
+
+/// Player is busted.
+pub fn busted(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
+    let mut data: Vec<u8> = Vec::new();
+    data.push(utils::PLAYER_BUSTED);
+    println!("Init busted game action.");
+    send(player, program, connection, &data)
 }

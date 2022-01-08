@@ -42,7 +42,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub struct BlackJackAccountDataSchema {
     pub last_operation: u8, // last operation done on account
     //initial dealer cards, at the game's beginning.
-    pub dealer_start1: u8,   //this card is not visible to players.
+    pub dealer_hand: u8,     //this card is not visible to players.
     pub dealer_start2: u8,   // this card is visible to players.
     pub player_hand: u8,     // contatins sum of the player's cards.
     pub current_card: usize, //current index inside the deck
@@ -53,6 +53,11 @@ pub const SEND_DECK: u8 = 0;
 pub const DEAL: u8 = 1;
 pub const REQUEST_NEW_DECK: u8 = 2;
 pub const CLEAR_DATA: u8 = 3;
+pub const PLAYER_HIT: u8 = 4;
+pub const PLAYER_STAND: u8 = 5;
+pub const DEALER_HIT: u8 = 6;
+pub const DEALER_STAND: u8 = 7;
+pub const PLAYER_BUSTED: u8 = 8;
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct SendDeck {
     pub deck: Vec<u8>,
@@ -156,7 +161,7 @@ pub fn get_blackjack_data_size() -> Result<usize> {
     }
     let encoded = BlackJackAccountDataSchema {
         cards: vec,
-        dealer_start1: 0,
+        dealer_hand: 0,
         dealer_start2: 0,
         player_hand: 0,
         current_card: 0,

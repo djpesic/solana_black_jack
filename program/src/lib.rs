@@ -45,6 +45,21 @@ pub fn process_instruction(
         instructions::CLEAR_DATA => {
             instructions::unpack_clear_data(account);
         }
+        instructions::DEALER_HIT => {
+            instructions::unpack_hit(account, instructions::DEALER_HIT);
+        }
+        instructions::PLAYER_HIT => {
+            instructions::unpack_hit(account, instructions::PLAYER_HIT);
+        }
+        instructions::DEALER_STAND => {
+            instructions::unpack_stand(account, instructions::DEALER_STAND);
+        }
+        instructions::PLAYER_STAND => {
+            instructions::unpack_stand(account, instructions::PLAYER_STAND);
+        }
+        instructions::PLAYER_BUSTED => {
+            instructions::unpack_player_busted(account);
+        }
         _ => (),
     }
     Ok(())
