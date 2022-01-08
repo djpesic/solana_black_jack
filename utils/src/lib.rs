@@ -52,6 +52,7 @@ pub struct BlackJackAccountDataSchema {
 pub const SEND_DECK: u8 = 0;
 pub const DEAL: u8 = 1;
 pub const REQUEST_NEW_DECK: u8 = 2;
+pub const CLEAR_DATA: u8 = 3;
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct SendDeck {
     pub deck: Vec<u8>,

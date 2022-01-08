@@ -98,6 +98,7 @@ fn main() {
         } else if line == "3" {
             *(end_recv.lock().unwrap()) = true;
             recv_thread.join().unwrap();
+            bj_client::actions::clear_data(&player, &program, &connection).unwrap();
             break;
         }
     }

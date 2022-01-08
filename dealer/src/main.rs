@@ -122,6 +122,10 @@ fn main() {
         } else if line == "3" {
             *(end_recv.lock().unwrap()) = true;
             recv_thread.join().unwrap();
+            let dealer = dealer_lock.lock().unwrap();
+            let program = program_lock.lock().unwrap();
+            let connection = conn_lock.lock().unwrap();
+            bj_client::actions::clear_data(&dealer, &program, &connection).unwrap();
             break;
         }
     }

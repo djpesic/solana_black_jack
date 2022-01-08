@@ -24,6 +24,7 @@ pub struct BlackJackAccountData {
 pub const SEND_DECK: u8 = 0;
 pub const DEAL: u8 = 1;
 pub const REQUEST_NEW_DECK: u8 = 2;
+pub const CLEAR_DATA: u8 = 3;
 
 //public constants
 pub const CARD_NUMBER: u8 = 52;
@@ -121,6 +122,36 @@ pub fn unpack_deal(account_info: &AccountInfo) {
     match bj_account.serialize(&mut &mut account_info.data.borrow_mut()[..]) {
         Ok(_) => {
             msg!("Deal finished, account: {:?}", bj_account);
+            return;
+        }
+        Err(_) => {
+            msg!("Account serialization error");
+        }
+    };
+}
+
+pub fn unpack_clear_data(account_info: &AccountInfo) {
+    msg!("Clear account");
+    let mut bj_account = match BlackJackAccountData::try_from_slice(&account_info.data.borrow()) {
+        Ok(acc) => acc,
+        Err(_) => {
+            msg!("Account serialization error");
+            return;
+        }
+    };
+    bj_account.last_operation = CLEAR_DATA;
+    bj_account.dealer_start1 = 0;
+    bj_account.dealer_start1 = 2;
+    bj_account.current_card = 0;
+    bj_account.player_hand = 0;
+    let len = bj_account.cards.len();
+    bj_account.cards.clear();
+    for _ in 0..len {
+        bj_account.cards.push(0);
+    }
+    match bj_account.serialize(&mut &mut account_info.data.borrow_mut()[..]) {
+        Ok(_) => {
+            msg!("Clearing finished, account: {:?}", bj_account);
             return;
         }
         Err(_) => {

@@ -42,6 +42,9 @@ pub fn process_instruction(
         instructions::DEAL => {
             instructions::unpack_deal(account);
         }
+        instructions::CLEAR_DATA => {
+            instructions::unpack_clear_data(account);
+        }
         _ => (),
     }
     Ok(())

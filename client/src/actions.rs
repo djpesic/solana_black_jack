@@ -80,6 +80,15 @@ pub fn deal(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Resu
     println!("Init dealing.");
     send(player, program, connection, &data)
 }
+
+/// Init clear operation. Clearing will be done inside the on-chain program.
+pub fn clear_data(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
+    let mut data: Vec<u8> = Vec::new();
+    data.push(utils::CLEAR_DATA);
+    println!("Init clearing data.");
+    send(player, program, connection, &data)
+}
+
 /// Get dealer's faced-up card.
 pub fn get_init_status(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<u8> {
     let bj_pubkey = utils::get_account_public_key(&player.pubkey(), &program.pubkey())?;
