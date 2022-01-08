@@ -58,6 +58,7 @@ pub const PLAYER_STAND: u8 = 5;
 pub const DEALER_HIT: u8 = 6;
 pub const DEALER_STAND: u8 = 7;
 pub const PLAYER_BUSTED: u8 = 8;
+pub const DEALER_BUSTED: u8 = 9;
 #[derive(BorshSerialize, BorshDeserialize)]
 pub struct SendDeck {
     pub deck: Vec<u8>,

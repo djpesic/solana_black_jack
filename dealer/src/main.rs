@@ -66,26 +66,35 @@ fn main() {
     let is_busted = Arc::new(Mutex::new(false));
     let is_busted1 = Arc::clone(&is_busted);
 
+    let hit_sem = Arc::new(Semaphore::new(0));
+    let hit_sem1 = Arc::clone(&hit_sem);
+
     let recv_thread = thread::spawn(move || loop {
         match receiver.recv_timeout(Duration::from_secs(2)) {
             Ok(val) => {
                 let val = val.value;
                 println!("Received event from solana network: {:?}", val);
-                let account = match bj_client::client::process_solana_network_event(val) {
+                let account_data = match bj_client::client::process_solana_network_event(val) {
                     Ok(acc) => acc,
                     Err(_) => continue,
                 };
-                if account.last_operation == utils::REQUEST_NEW_DECK {
+                if account_data.last_operation == utils::REQUEST_NEW_DECK {
                     let dealer = dealer_lock1.lock().unwrap();
                     let program = program_lock1.lock().unwrap();
                     let connection = conn_lock1.lock().unwrap();
                     bj_client::actions::send_deck(&dealer, &program, &connection).unwrap();
                     println!("Dealer dealt a new deck of cards");
-                } else if account.last_operation == utils::PLAYER_BUSTED {
+                } else if account_data.last_operation == utils::PLAYER_BUSTED {
                     *is_busted1.lock().unwrap() = true;
                     wait_player1.release();
-                } else if account.last_operation == utils::PLAYER_STAND {
+                } else if account_data.last_operation == utils::PLAYER_STAND {
                     wait_player1.release();
+                } else if account_data.last_operation == utils::DEALER_HIT {
+                    println!("Sum of current dealer hand is {}", account_data.dealer_hand);
+                    if account_data.dealer_hand > 21 {
+                        *is_busted1.lock().unwrap() = true;
+                    }
+                    hit_sem1.release();
                 }
             }
             Err(RecvTimeoutError::Timeout) => {
@@ -139,21 +148,29 @@ fn main() {
             let program = program_lock.lock().unwrap();
             let connection = conn_lock.lock().unwrap();
             bj_client::actions::hit(&dealer, &program, &connection, utils::DEALER_HIT).unwrap();
+            hit_sem.acquire();
+            if *is_busted.lock().unwrap() {
+                println!("DEALER BUSTED");
+                //notify player and finish
+                bj_client::actions::busted(&dealer, &program, &connection, utils::DEALER_BUSTED)
+                    .unwrap();
+                break;
+            }
         } else if line == "2" {
             let dealer = dealer_lock.lock().unwrap();
             let program = program_lock.lock().unwrap();
             let connection = conn_lock.lock().unwrap();
             bj_client::actions::stand(&dealer, &program, &connection, utils::DEALER_STAND).unwrap();
         } else if line == "3" {
-            *(end_recv.lock().unwrap()) = true;
-            recv_thread.join().unwrap();
-            let dealer = dealer_lock.lock().unwrap();
-            let program = program_lock.lock().unwrap();
-            let connection = conn_lock.lock().unwrap();
-            bj_client::actions::clear_data(&dealer, &program, &connection).unwrap();
             break;
         }
     }
+    *(end_recv.lock().unwrap()) = true;
+    recv_thread.join().unwrap();
+    let dealer = dealer_lock.lock().unwrap();
+    let program = program_lock.lock().unwrap();
+    let connection = conn_lock.lock().unwrap();
+    bj_client::actions::clear_data(&dealer, &program, &connection).unwrap();
     // must be called, because pubsubclient currently can't unsubscribe from the network.
     exit(0);
 }

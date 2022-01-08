@@ -30,6 +30,7 @@ pub const PLAYER_STAND: u8 = 5;
 pub const DEALER_HIT: u8 = 6;
 pub const DEALER_STAND: u8 = 7;
 pub const PLAYER_BUSTED: u8 = 8;
+pub const DEALER_BUSTED: u8 = 9;
 
 //public constants
 pub const CARD_NUMBER: u8 = 52;
@@ -225,8 +226,8 @@ pub fn unpack_stand(account_info: &AccountInfo, operation: u8) {
     };
 }
 
-pub fn unpack_player_busted(account_info: &AccountInfo) {
-    msg!("Player busted");
+pub fn unpack_busted(account_info: &AccountInfo, operation: u8) {
+    msg!("Busted");
     let mut bj_account = match BlackJackAccountData::try_from_slice(&account_info.data.borrow()) {
         Ok(acc) => acc,
         Err(_) => {
@@ -235,7 +236,7 @@ pub fn unpack_player_busted(account_info: &AccountInfo) {
         }
     };
 
-    bj_account.last_operation = PLAYER_BUSTED;
+    bj_account.last_operation = operation;
     match bj_account.serialize(&mut &mut account_info.data.borrow_mut()[..]) {
         Ok(_) => {
             msg!("Busted operation finished, account: {:?}", bj_account);

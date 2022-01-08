@@ -59,6 +59,9 @@ fn main() {
     let busted = Arc::new(Mutex::new(false));
     let busted1 = Arc::clone(&busted);
 
+    let dealer_finished = Arc::new(Semaphore::new(0));
+    let dealer_finished1 = Arc::clone(&dealer_finished);
+
     let recv_thread = thread::spawn(move || loop {
         match receiver.recv_timeout(Duration::from_secs(2)) {
             Ok(val) => {
@@ -73,6 +76,9 @@ fn main() {
                         *busted1.lock().unwrap() = true;
                     }
                     hit_sem1.release();
+                } else if account_data.last_operation == utils::DEALER_BUSTED {
+                    println!("Dealer busted");
+                    dealer_finished1.release();
                 }
             }
             Err(RecvTimeoutError::Timeout) => {
@@ -107,14 +113,16 @@ fn main() {
             bj_client::actions::hit(&player, &program, &connection, utils::PLAYER_HIT).unwrap();
             hit_sem.acquire();
             if *busted.lock().unwrap() {
-                println!("BUSTED");
+                println!("PLAYER BUSTED");
                 //notify dealer and finish
-                bj_client::actions::busted(&player, &program, &connection).unwrap();
+                bj_client::actions::busted(&player, &program, &connection, utils::PLAYER_BUSTED)
+                    .unwrap();
                 break;
             }
         } else if line == "2" {
             bj_client::actions::stand(&player, &program, &connection, utils::PLAYER_STAND).unwrap();
-            // notify dealer, and wait for dealer to finish
+            //wait for dealer to finish
+            dealer_finished.acquire();
 
             break;
         } else if line == "3" {

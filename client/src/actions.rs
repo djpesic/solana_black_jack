@@ -132,14 +132,19 @@ pub fn stand(
 ) -> Result<()> {
     let mut data: Vec<u8> = Vec::new();
     data.push(operation);
-    println!("Init hit game action.");
+    println!("Init stand game action.");
     send(player, program, connection, &data)
 }
 
 /// Player is busted.
-pub fn busted(player: &Keypair, program: &Keypair, connection: &RpcClient) -> Result<()> {
+pub fn busted(
+    player: &Keypair,
+    program: &Keypair,
+    connection: &RpcClient,
+    operation: u8,
+) -> Result<()> {
     let mut data: Vec<u8> = Vec::new();
-    data.push(utils::PLAYER_BUSTED);
+    data.push(operation);
     println!("Init busted game action.");
     send(player, program, connection, &data)
 }

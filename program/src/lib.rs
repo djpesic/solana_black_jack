@@ -58,7 +58,10 @@ pub fn process_instruction(
             instructions::unpack_stand(account, instructions::PLAYER_STAND);
         }
         instructions::PLAYER_BUSTED => {
-            instructions::unpack_player_busted(account);
+            instructions::unpack_busted(account, instructions::PLAYER_BUSTED);
+        }
+        instructions::DEALER_BUSTED => {
+            instructions::unpack_busted(account, instructions::DEALER_BUSTED);
         }
         _ => (),
     }
