@@ -75,6 +75,7 @@ pub fn unpack_deal(account_info: &AccountInfo) {
             return;
         }
     };
+    let mut no_card_left = false;
     match bj_account.cards.get_mut(bj_account.current_card) {
         Some(c) => {
             bj_account.dealer_hand = *c;
@@ -84,47 +85,55 @@ pub fn unpack_deal(account_info: &AccountInfo) {
         None => {
             msg!("No cards left to deal!");
             bj_account.last_operation = REQUEST_NEW_DECK;
-            return;
+            no_card_left = true;
         }
     };
     match bj_account.cards.get_mut(bj_account.current_card) {
         Some(c) => {
-            bj_account.dealer_start2 = *c;
-            bj_account.dealer_hand += *c;
-            *c = 0;
-            bj_account.current_card -= 1;
+            if !no_card_left {
+                bj_account.dealer_start2 = *c;
+                bj_account.dealer_hand += *c;
+                *c = 0;
+                bj_account.current_card -= 1;
+            }
         }
         None => {
             msg!("No cards left to deal!");
             bj_account.last_operation = REQUEST_NEW_DECK;
-            return;
+            no_card_left = true;
         }
     };
     match bj_account.cards.get_mut(bj_account.current_card) {
         Some(c) => {
-            bj_account.player_hand = *c;
-            *c = 0;
-            bj_account.current_card -= 1;
+            if !no_card_left {
+                bj_account.player_hand = *c;
+                *c = 0;
+                bj_account.current_card -= 1;
+            }
         }
         None => {
             msg!("No cards left to deal!");
             bj_account.last_operation = REQUEST_NEW_DECK;
-            return;
+            no_card_left = true;
         }
     };
     match bj_account.cards.get_mut(bj_account.current_card) {
         Some(c) => {
-            bj_account.player_hand += *c;
-            *c = 0;
-            bj_account.current_card -= 1;
+            if !no_card_left {
+                bj_account.player_hand += *c;
+                *c = 0;
+                bj_account.current_card -= 1;
+            }
         }
         None => {
             msg!("No cards left to deal!");
             bj_account.last_operation = REQUEST_NEW_DECK;
-            return;
+            no_card_left = true;
         }
     };
-    bj_account.last_operation = DEAL;
+    if !no_card_left {
+        bj_account.last_operation = DEAL;
+    }
 
     match bj_account.serialize(&mut &mut account_info.data.borrow_mut()[..]) {
         Ok(_) => {
@@ -176,6 +185,7 @@ pub fn unpack_hit(account_info: &AccountInfo, operation: u8) {
             return;
         }
     };
+
     match bj_account.cards.get_mut(bj_account.current_card) {
         Some(c) => {
             if operation == PLAYER_HIT {

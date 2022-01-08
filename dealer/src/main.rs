@@ -90,6 +90,8 @@ fn main() {
                     let connection = conn_lock1.lock().unwrap();
                     bj_client::actions::send_deck(&dealer, &program, &connection).unwrap();
                     println!("Dealer dealt a new deck of cards");
+                    bj_client::actions::deal(&dealer, &program, &connection).unwrap();
+                    println!("New cards are dealt, waiting for player to finish");
                 } else if account_data.last_operation == utils::PLAYER_BUSTED {
                     *is_busted1.lock().unwrap() = true;
                     wait_player1.release();
