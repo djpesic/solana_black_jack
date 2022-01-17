@@ -31,5 +31,10 @@ This program must be left running in the background.
 `./run.sh build`
 - Application currently works only on local test blockchain.
 - Deploy commands and keypair location are displayed at the end of the build output. Also, you can use this command: `/run.sh deploy`
+- **Warning: if game is using for the first time, do not run player before dealer, because dealer initializes all neccessary data for player.**
+- Open new terminal and start dealer application.
+`./run.sh dealer`
+- After dealer application prints "Cards are dealt, waiting for player to finish", open new terminal and start player application.
+`./run.sh player`
+- Game now can be played.
 - Cleanup build: `./run.sh clean`
-- Run client: TBD
