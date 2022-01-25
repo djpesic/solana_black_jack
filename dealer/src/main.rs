@@ -99,6 +99,7 @@ fn main() {
                     println!("Player stands with {}", account_data.player_hand);
                     println!("Sum of dealer current hand is {}", account_data.dealer_hand);
                     *last_player_hand1.lock().unwrap() = account_data.player_hand;
+                    *dealer_hand1.lock().unwrap() = account_data.dealer_hand;
                     wait_player1.release();
                 } else if account_data.last_operation == utils::DEALER_HIT {
                     println!("Sum of current dealer hand is {}", account_data.dealer_hand);
@@ -152,7 +153,6 @@ fn main() {
         println!("Enter option:");
         println!("1) Hit");
         println!("2) Stand");
-        println!("3) Exit");
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
         line = line.trim().to_string();
@@ -180,8 +180,6 @@ fn main() {
             } else {
                 println!("Dealer should continue hitting");
             }
-        } else if line == "3" {
-            break;
         }
     }
     *(end_recv.lock().unwrap()) = true;

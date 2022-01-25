@@ -113,7 +113,6 @@ fn main() {
             println!("Enter option:");
             println!("1) Hit");
             println!("2) Stand");
-            println!("3) Exit");
             let mut line = String::new();
             std::io::stdin().read_line(&mut line).unwrap();
             line = line.trim().to_string();
@@ -149,6 +148,6 @@ fn main() {
     *(end_recv.lock().unwrap()) = true;
     recv_thread.join().unwrap();
     // must be called, because pubsubclient currently can't unsubscribe from the network.
-
+    bj_client::actions::clear_data(&player, &program, &connection).unwrap();
     exit(0);
 }
