@@ -1,7 +1,6 @@
 extern crate std_semaphore;
 use black_jack_client as bj_client;
 use std::process::exit;
-use std::sync::mpsc::RecvTimeoutError;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -110,14 +109,14 @@ fn main() {
                     hit_sem1.release();
                 }
             }
-            Err(RecvTimeoutError::Timeout) => {
+            Err(crossbeam_channel::RecvTimeoutError::Timeout) => {
                 let should_finish = end_recv1.lock().unwrap();
                 if *should_finish {
                     println!("Receiver ended properly.");
                     return;
                 }
             }
-            Err(RecvTimeoutError::Disconnected) => {
+            Err(crossbeam_channel::RecvTimeoutError::Disconnected) => {
                 println!("Received disconnected");
                 return;
             }

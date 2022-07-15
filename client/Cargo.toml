@@ -1,15 +1,15 @@
 [package]
 name = "black_jack_client"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-solana-sdk = "1.9.2"
-solana-client = "1.9.2"
+solana-sdk = "1.11.3"
+solana-client = "1.11.3"
 yaml-rust = "0.4.5"
 rand = "0.8.4"
 utils = { path= "../utils"}
-borsh = "0.9.1"
-solana-account-decoder="1.9.2"
+borsh = "0.9.3"
+solana-account-decoder="1.11.3"
