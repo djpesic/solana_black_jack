@@ -1,13 +1,7 @@
 #!/bin/bash
 
 function build_bpf() {
-	cd client
-	cargo build
-	cd ../dealer
-	cargo build
-	cd ../utils
-	cargo build
-	cd ../player
+	cd clients
 	cargo build
 	cd ..
     cargo build-bpf --manifest-path=program/Cargo.toml --bpf-out-dir=program/dist/program
@@ -19,18 +13,17 @@ case $1 in
 	;;
     "deploy")
 	build_bpf
-	solana program deploy dist/program/black_jack.so
+	solana program deploy program/dist/program/black_jack.so
 	;;
     "dealer")
-	(cd dealer/; cargo run ../dist/program/black_jack-keypair.json)
+	(./clients/target/debug/dealer program/dist/program/black_jack-keypair.json)
 	;;
 	"player")
-	(cd player/; cargo run ../dist/program/black_jack-keypair.json)
+	(./clients/target/debug/player program/dist/program/black_jack-keypair.json)
 	;;
     "clean")
+	(cd clients/; cargo clean)
 	(cd program/; cargo clean)
-	(cd client/; cargo clean)
-	(cd player/; cargo clean)
 	rm -rf program/dist/
 	;;
     *)

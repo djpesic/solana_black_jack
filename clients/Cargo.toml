@@ -1,0 +1,22 @@
+[package]
+name = "black_jack_client"
+version = "0.1.2"
+edition = "2021"
+
+
+[workspace]
+members = ["dealer","player", "utils", "client"]
+
+[dependencies]
+utils ={ path="utils" }
+client={ path = "client"}
+std-semaphore="0.1.0"
+crossbeam-channel="0.5.5"
+
+[[bin]]
+name="dealer"
+path="dealer/src/main.rs"
+
+[[bin]]
+name="player"
+path="player/src/main.rs"

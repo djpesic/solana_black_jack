@@ -1,6 +1,6 @@
 extern crate std_semaphore;
 
-use black_jack_client as bj_client;
+use client as bj_client;
 use std::process::exit;
 use std::sync::{Arc, Mutex};
 use std::thread;
