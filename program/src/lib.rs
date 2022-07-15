@@ -1,11 +1,12 @@
-// use black_jack_client as bj_client;
-// use borsh::{BorshDeserialize, BorshSerialize};
+pub mod instructions;
+
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint, msg,
     program_error::ProgramError,
     pubkey::Pubkey,
 };
+use crate::instructions::*;
 
 // Declare the programs entrypoint. The entrypoint is the function
 // that will get run when the program is executed.
@@ -36,32 +37,32 @@ pub fn process_instruction(
     msg!("account data: {:?}", &account.data.borrow());
 
     match instruction_data[0] {
-        instructions::SEND_DECK => {
-            instructions::unpack_send_deck(&instruction_data[1..], account);
+        SEND_DECK => {
+            unpack_send_deck(&instruction_data[1..], account);
         }
-        instructions::DEAL => {
-            instructions::unpack_deal(account);
+        DEAL => {
+            unpack_deal(account);
         }
-        instructions::CLEAR_DATA => {
-            instructions::unpack_clear_data(account);
+        CLEAR_DATA => {
+            unpack_clear_data(account);
         }
-        instructions::DEALER_HIT => {
-            instructions::unpack_hit(account, instructions::DEALER_HIT);
+        DEALER_HIT => {
+            unpack_hit(account, DEALER_HIT);
         }
-        instructions::PLAYER_HIT => {
-            instructions::unpack_hit(account, instructions::PLAYER_HIT);
+        PLAYER_HIT => {
+            unpack_hit(account, PLAYER_HIT);
         }
-        instructions::DEALER_STAND => {
-            instructions::unpack_stand(account, instructions::DEALER_STAND);
+        DEALER_STAND => {
+            unpack_stand(account, DEALER_STAND);
         }
-        instructions::PLAYER_STAND => {
-            instructions::unpack_stand(account, instructions::PLAYER_STAND);
+        PLAYER_STAND => {
+            unpack_stand(account, PLAYER_STAND);
         }
-        instructions::PLAYER_BUSTED => {
-            instructions::unpack_busted(account, instructions::PLAYER_BUSTED);
+        PLAYER_BUSTED => {
+            unpack_busted(account, PLAYER_BUSTED);
         }
-        instructions::DEALER_BUSTED => {
-            instructions::unpack_busted(account, instructions::DEALER_BUSTED);
+        DEALER_BUSTED => {
+            unpack_busted(account, DEALER_BUSTED);
         }
         _ => (),
     }

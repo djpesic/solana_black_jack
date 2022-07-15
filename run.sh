@@ -7,8 +7,6 @@ function build_bpf() {
 	cargo build
 	cd ../utils
 	cargo build
-	cd ../instructions
-	cargo build
 	cd ../player
 	cargo build
 	cd ..

@@ -18,7 +18,6 @@ exclude_entrypoint = []
 [dependencies]
 solana-program = "1.9.2"
 borsh = "0.9.1"
-instructions = {path = "../instructions"}
 
 [lib]
 name = "black_jack"
