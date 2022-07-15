@@ -1,4 +1,4 @@
-/dist
+program/dist
 /test-ledger
 /**/target
 /**/Cargo.lock

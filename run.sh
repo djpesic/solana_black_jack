@@ -10,7 +10,7 @@ function build_bpf() {
 	cd ../player
 	cargo build
 	cd ..
-    cargo build-bpf --manifest-path=program/Cargo.toml --bpf-out-dir=dist/program
+    cargo build-bpf --manifest-path=program/Cargo.toml --bpf-out-dir=program/dist/program
 }
 
 case $1 in
@@ -31,7 +31,7 @@ case $1 in
 	(cd program/; cargo clean)
 	(cd client/; cargo clean)
 	(cd player/; cargo clean)
-	rm -rf dist/
+	rm -rf program/dist/
 	;;
     *)
 	echo "usage: $0 [build|clean|client]"
